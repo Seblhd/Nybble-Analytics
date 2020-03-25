@@ -1,0 +1,11 @@
+{
+  "id" : "496a0e47-0a33-4dca-b009-9e6ca3591f39",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "TicketOptions" : "winlog.event_data.TicketOptions",
+      "TicketEncryptionType" : "winlog.event_data.TicketEncryptionType",
+      "ServiceName" : "winlog.event_data.ServiceName"
+    }
+  }
+}

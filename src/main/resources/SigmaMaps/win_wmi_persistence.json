@@ -1,0 +1,9 @@
+{
+  "id" : "0b7889b4-5577-4521-a60a-3376ee7f9f7b",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "Message" : "winlog.event_data.Payload"
+    }
+  }
+}

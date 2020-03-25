@@ -1,0 +1,9 @@
+{
+  "id" : "a0a278fe-2c0e-4de2-ac3c-c68b08a9ba98",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "Path" : "winlog.event_data.Path"
+    }
+  }
+}

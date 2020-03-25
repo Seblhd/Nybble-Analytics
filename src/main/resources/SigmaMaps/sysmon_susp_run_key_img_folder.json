@@ -1,0 +1,13 @@
+{
+  "id" : "02ee49e2-e294-4d0f-9278-f5b3212fc588",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "TargetObject" : "winlog.event_data.TargetObject",
+      "Details" : "winlog.event_data.Details"
+    },
+    "fields" : {
+      "Image" : "process.executable"
+    }
+  }
+}

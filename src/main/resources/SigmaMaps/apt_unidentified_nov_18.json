@@ -1,0 +1,10 @@
+{
+  "id" : "7453575c-a747-40b9-839b-125a0aae324b",
+  "map" : {
+    "detection" : {
+      "CommandLine" : "process.args",
+      "EventID" : "event.code",
+      "TargetFilename" : "winlog.event_data.TargetFileName"
+    }
+  }
+}

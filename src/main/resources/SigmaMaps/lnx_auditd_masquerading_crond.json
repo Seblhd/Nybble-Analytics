@@ -1,0 +1,12 @@
+{
+  "id" : "9d4548fa-bba0-4e88-bd66-5d5bf516cda0",
+  "map" : {
+    "detection" : {
+      "type" : "event.type",
+      "a0" : "auditd.data.a0",
+      "a1" : "auditd.data.a1",
+      "a2" : "auditd.data.a2",
+      "a3" : "auditd.data.a3"
+    }
+  }
+}

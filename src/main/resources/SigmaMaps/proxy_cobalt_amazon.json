@@ -1,0 +1,12 @@
+{
+  "id" : "953b895e-5cc9-454b-b183-7f3db555452e",
+  "map" : {
+    "detection" : {
+      "c-useragent" : "user_agent.original",
+      "cs-method" : "http.request.method",
+      "c-uri" : "url.query",
+      "cs-host" : "server.registered_domain",
+      "cs-cookie" : "nybble.http.response.cookie"
+    }
+  }
+}

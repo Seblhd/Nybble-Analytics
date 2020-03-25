@@ -1,0 +1,10 @@
+{
+  "id" : "fc947f8e-ea81-4b14-9a7b-13f888f94e18",
+  "map" : {
+    "detection" : {
+      "pam_message" : "event.outcome",
+      "pam_user" : "user.name",
+      "pam_rhost" : "source.ip"
+    }
+  }
+}

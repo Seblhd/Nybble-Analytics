@@ -1,0 +1,13 @@
+{
+  "id" : "8202070f-edeb-4d31-a010-a26c72ac5600",
+  "map" : {
+    "detection" : {
+      "ParentImage" : "process.parent.executable",
+      "Image" : "process.executable"
+    },
+    "fields" : {
+      "CommandLine" : "process.args",
+      "ParentCommandLine" : "parent.executable"
+    }
+  }
+}

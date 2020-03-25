@@ -1,0 +1,11 @@
+{
+  "id" : "c7942406-33dd-4377-a564-0f62db0593a3",
+  "map" : {
+    "detection" : {
+      "CommandLine" : "process.args"
+    },
+    "fields" : {
+      "ParentCommandLine" : "parent.executable"
+    }
+  }
+}

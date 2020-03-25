@@ -1,0 +1,10 @@
+{
+  "id" : "851c506b-6b7c-4ce2-8802-c703009d03c0",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "keyword1" : "message",
+      "keyword2" : "message"
+    }
+  }
+}

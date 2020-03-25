@@ -1,0 +1,14 @@
+{
+  "id" : "52a85084-6989-40c3-8f32-091e12e13f09",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "ServiceName" : "winlog.event_data.ServiceName",
+      "ServiceFileName" : "winlog.event_data.ImagePath"
+    },
+    "fields" : {
+      "ServiceName" : "winlog.event_data.ServiceName",
+      "ServiceFileName" : "winlog.event_data.ImagePath"
+    }
+  }
+}

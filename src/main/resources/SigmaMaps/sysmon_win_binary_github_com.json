@@ -1,0 +1,11 @@
+{
+  "id" : "635dbb88-67b3-4b41-9ea5-a3af2dd88153",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "Initiated" : "nybble.network.initiated.flag",
+      "DestinationHostname" : "destination.domain",
+      "Image" : "process.executable"
+    }
+  }
+}

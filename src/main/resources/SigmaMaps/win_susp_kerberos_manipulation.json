@@ -1,0 +1,9 @@
+{
+  "id" : "f7644214-0eb0-4ace-9455-331ec4c09253",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "FailureCode" : "winlog.event_data.FailureCode"
+    }
+  }
+}

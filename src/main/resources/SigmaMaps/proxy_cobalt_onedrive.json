@@ -1,0 +1,10 @@
+{
+  "id" : "c9b33401-cc6a-4cf6-83bb-57ddcb2407fc",
+  "map" : {
+    "detection" : {
+      "cs-method" : "http.request.method",
+      "c-uri" : "url.query",
+      "cs-host" : "server.registered_domain"
+    }
+  }
+}

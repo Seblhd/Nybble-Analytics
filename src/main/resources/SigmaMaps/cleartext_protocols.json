@@ -1,0 +1,9 @@
+{
+  "id" : "7e4bfe58-4a47-4709-828d-d86c78b7cc1f",
+  "map" : {
+    "detection" : {
+      "destination.port" : "destination.port",
+      "action" : "event.outcome"
+    }
+  }
+}

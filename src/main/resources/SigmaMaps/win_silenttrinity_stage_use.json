@@ -1,0 +1,9 @@
+{
+  "id" : "03552375-cc2c-4883-bbe4-7958d5a980be",
+  "map" : {
+    "detection" : {
+      "Description" : "winlog.event_data.Description",
+      "EventID" : "event.code"
+    }
+  }
+}

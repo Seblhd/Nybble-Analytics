@@ -1,0 +1,10 @@
+{
+  "id" : "d178a2d7-129a-4ba4-8ee6-d6e1fecd5d20",
+  "map" : {
+    "detection" : {
+      "Description" : "winlog.event_data.Description",
+      "Company" : "winlog.event_data.Company",
+      "Image" : "process.executable"
+    }
+  }
+}

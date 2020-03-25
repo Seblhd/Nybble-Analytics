@@ -1,0 +1,10 @@
+{
+  "id" : "0d894093-71bc-43c3-8c4d-ecfc28dcf5d9",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "TargetImage" : "winlog.event_data.TargetImage",
+      "GrantedAccess" : "winlog.event_data.GrantedAccess"
+    }
+  }
+}

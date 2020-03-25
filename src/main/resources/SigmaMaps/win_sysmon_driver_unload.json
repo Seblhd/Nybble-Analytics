@@ -1,0 +1,13 @@
+{
+  "id" : "4d7cda18-1b12-4e52-b45c-d28653210df8",
+  "map" : {
+    "detection" : {
+      "Image" : "process.executable",
+      "CommandLine" : "process.args"
+    },
+    "fields" : {
+      "CommandLine" : "process.args",
+      "Details" : "winlog.event_data.Details"
+    }
+  }
+}

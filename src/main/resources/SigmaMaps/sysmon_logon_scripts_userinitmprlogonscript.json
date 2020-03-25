@@ -1,0 +1,12 @@
+{
+  "id" : "0a98a10c-685d-4ab0-bddc-b6bdd1d48458",
+  "map" : {
+    "detection" : {
+      "ParentImage" : "process.parent.executable",
+      "Image" : "process.executable",
+      "CommandLine" : "process.args",
+      "EventID" : "event.code",
+      "TargetObject" : "winlog.event_data.TargetObject"
+    }
+  }
+}

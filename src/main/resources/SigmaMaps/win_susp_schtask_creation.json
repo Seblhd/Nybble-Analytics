@@ -1,0 +1,14 @@
+{
+  "id" : "92626ddd-662c-49e3-ac59-f6535f12d189",
+  "map" : {
+    "detection" : {
+      "Image" : "process.executable",
+      "CommandLine" : "process.args",
+      "User" : "nybble.user.full"
+    },
+    "fields" : {
+      "CommandLine" : "process.args",
+      "ParentCommandLine" : "parent.executable"
+    }
+  }
+}

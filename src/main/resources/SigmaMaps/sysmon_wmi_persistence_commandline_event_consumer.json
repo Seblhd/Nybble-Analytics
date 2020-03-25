@@ -1,0 +1,10 @@
+{
+  "id" : "05936ce2-ee05-4dae-9d03-9a391cf2d2c6",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "Image" : "process.executable",
+      "ImageLoaded" : "file.path"
+    }
+  }
+}

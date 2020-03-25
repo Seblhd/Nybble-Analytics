@@ -1,0 +1,12 @@
+{
+  "id" : "fdf135a2-9241-4f96-a114-bb404948f736",
+  "map" : {
+    "detection" : {
+      "Signature" : "nybble.observer.signature.name"
+    },
+    "fields" : {
+      "FileName" : "file.name",
+      "User" : "nybble.user.full"
+    }
+  }
+}

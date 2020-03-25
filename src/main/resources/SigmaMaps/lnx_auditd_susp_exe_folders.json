@@ -1,0 +1,9 @@
+{
+  "id" : "a39d7fa7-3fbd-4dc2-97e1-d87f546b1bbc",
+  "map" : {
+    "detection" : {
+      "type" : "event.type",
+      "exe" : "auditd.summary.how"
+    }
+  }
+}

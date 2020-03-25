@@ -1,0 +1,8 @@
+{
+  "id" : "cbe51394-cd93-4473-b555-edf0144952d9",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code"
+    }
+  }
+}

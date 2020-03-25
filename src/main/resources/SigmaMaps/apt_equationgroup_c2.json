@@ -1,0 +1,9 @@
+{
+  "id" : "881834a4-6659-4773-821e-1c151789d873",
+  "map" : {
+    "detection" : {
+      "dst_ip" : "destination.ip",
+      "src_ip" : "source.ip"
+    }
+  }
+}

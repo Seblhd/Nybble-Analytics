@@ -1,0 +1,9 @@
+{
+  "id" : "4922a5dd-6743-4fc2-8e81-144374280997",
+  "map" : {
+    "detection" : {
+      "c-uri-query" : "url.query",
+      "c-uri-stem" : "url.path"
+    }
+  }
+}

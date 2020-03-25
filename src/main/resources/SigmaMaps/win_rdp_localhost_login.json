@@ -1,0 +1,10 @@
+{
+  "id" : "51e33403-2a37-4d66-a574-1fda1782cc31",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "LogonType" : "winlog.event_data.LogonType",
+      "SourceNetworkAddress" : "source.ip"
+    }
+  }
+}

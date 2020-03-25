@@ -1,0 +1,18 @@
+{
+  "id" : "6f3e2987-db24-4c78-a860-b4f4095a7095",
+  "map" : {
+    "detection" : {
+      "Image" : "process.executable",
+      "CommandLine" : "process.args"
+    },
+    "fields" : {
+      "Image" : "process.executable",
+      "CommandLine" : "process.args",
+      "User" : "nybble.user.full",
+      "LogonGuid" : "winlog.event_data.LogonGuid",
+      "Hashes" : "hash.sha256",
+      "ParentProcessGuid" : "winlog.event_data.ParentProcessGuid",
+      "ParentCommandLine" : "parent.executable"
+    }
+  }
+}

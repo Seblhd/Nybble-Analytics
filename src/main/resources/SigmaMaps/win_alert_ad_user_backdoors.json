@@ -1,0 +1,11 @@
+{
+  "id" : "300bac00-e041-4ee2-9c36-e262656a6ecc",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "AllowedToDelegateTo" : "winlog.event_data.AllowedToDelegateTo",
+      "AttributeLDAPDisplayName" : "winlog.event_data.AttributeLDAPDisplayName",
+      "ObjectClass" : "winlog.event_data.ObjectClass"
+    }
+  }
+}

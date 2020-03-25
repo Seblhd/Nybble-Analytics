@@ -1,0 +1,11 @@
+{
+  "id" : "586a8d6b-6bfe-4ad9-9d78-888cd2fe50c3",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "ShareName" : "winlog.event_data.ShareName",
+      "RelativeTargetName" : "winlog.event_data.RelativeTargetName",
+      "Accesses" : "winlog.event_data.AccessList"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id" : "098d7118-55bc-4912-a836-dc6483a8d150",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "ShareName" : "winlog.event_data.ShareName",
+      "SubjectUserName" : "winlog.event_data.SubjectUserName"
+    }
+  }
+}

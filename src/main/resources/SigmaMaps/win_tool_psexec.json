@@ -1,0 +1,19 @@
+{
+  "id" : "42c575ea-e41e-41f1-b248-8093c3e82a28",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "ServiceName" : "winlog.event_data.ServiceName",
+      "ServiceFileName" : "winlog.event_data.ImagePath",
+      "Image" : "process.executable",
+      "User" : "nybble.user.full"
+    },
+    "fields" : {
+      "EventID" : "event.code",
+      "CommandLine" : "process.args",
+      "ParentCommandLine" : "parent.executable",
+      "ServiceName" : "winlog.event_data.ServiceName",
+      "ServiceFileName" : "winlog.event_data.ImagePath"
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id" : "ed5d72a6-f8f4-479d-ba79-02f6a80d7471",
+  "map" : {
+    "detection" : {
+      "ParentImage" : "process.parent.executable",
+      "Image" : "process.executable"
+    }
+  }
+}

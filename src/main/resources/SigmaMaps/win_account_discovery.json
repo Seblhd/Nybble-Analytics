@@ -1,0 +1,10 @@
+{
+  "id" : "35ba1d85-724d-42a3-889f-2e2362bcaf23",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "ObjectType" : "winlog.event_data.ObjectType",
+      "ObjectName" : "winlog.event_data.ObjectName"
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id" : "2c4523d5-d481-4ed0-8ec3-7fbf0cb41a75",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "ImageLoaded" : "file.path"
+    }
+  }
+}

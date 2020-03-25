@@ -1,0 +1,24 @@
+title: Network Scans
+id: fab0ddf0-b8a9-4d70-91ce-a20547209afb
+description: Detects many failed connection attempts to different ports or hosts
+author: Thomas Patzke
+logsource:
+    category: firewall
+detection:
+    selection1:
+        action: deny
+    selection2:
+        action: denied
+    timeframe: 24h
+    condition:
+        - selection1 | count(dst_port) by src_ip > 10
+        - selection2 | count(dst_ip) by src_ip > 10
+fields:
+    - src_ip
+    - dst_ip
+    - dst_port
+falsepositives:
+    - Inventarization systems
+    - Vulnerability scans
+    - Penetration testing activity
+level: medium

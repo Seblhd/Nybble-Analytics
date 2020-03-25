@@ -1,0 +1,13 @@
+{
+  "id" : "195c1119-ef07-4909-bb12-e66f5e07bf3c",
+  "map" : {
+    "detection" : {
+      "c-uri-extension" : "url.extension",
+      "r-dns" : "dns.question.name"
+    },
+    "fields" : {
+      "cs-ip" : "destination.ip",
+      "c-uri" : "url.query"
+    }
+  }
+}

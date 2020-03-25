@@ -1,0 +1,12 @@
+{
+  "id" : "baca5663-583c-45f9-b5dc-ea96a22ce542",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "TargetObject" : "winlog.event_data.TargetObject",
+      "EventType" : "winlog.event_data.EventType",
+      "ParentImage" : "process.parent.executable",
+      "CommandLine" : "process.args"
+    }
+  }
+}

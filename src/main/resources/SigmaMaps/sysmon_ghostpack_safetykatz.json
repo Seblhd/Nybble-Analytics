@@ -1,0 +1,9 @@
+{
+  "id" : "e074832a-eada-4fd7-94a1-10642b130e16",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "TargetFilename" : "winlog.event_data.TargetFileName"
+    }
+  }
+}

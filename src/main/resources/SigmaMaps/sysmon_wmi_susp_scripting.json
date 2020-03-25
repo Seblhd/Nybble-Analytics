@@ -1,0 +1,13 @@
+{
+  "id" : "fe21810c-2a8c-478f-8dd3-5a287fb2a0e0",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "Destination" : "winlog.event_data.Destination"
+    },
+    "fields" : {
+      "CommandLine" : "process.args",
+      "ParentCommandLine" : "parent.executable"
+    }
+  }
+}

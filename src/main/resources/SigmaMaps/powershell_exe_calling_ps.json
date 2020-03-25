@@ -1,0 +1,10 @@
+{
+  "id" : "c70e019b-1479-4b65-b0cc-cd0c6093a599",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "EngineVersion" : "winlog.event_data.EngineVersion",
+      "HostVersion" : "winlog.event_data.HostVersion"
+    }
+  }
+}

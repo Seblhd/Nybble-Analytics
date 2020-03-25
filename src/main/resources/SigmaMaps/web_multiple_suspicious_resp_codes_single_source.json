@@ -1,0 +1,14 @@
+{
+  "id" : "6fdfc796-06b3-46e8-af08-58f3505318af",
+  "map" : {
+    "detection" : {
+      "response" : "http.response.status_code"
+    },
+    "fields" : {
+      "client_ip" : "client.ip",
+      "vhost" : "nybble.http.vhost",
+      "url" : "message",
+      "response" : "http.response.status_code"
+    }
+  }
+}

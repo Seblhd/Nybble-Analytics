@@ -1,0 +1,10 @@
+{
+  "id" : "6c82cf5c-090d-4d57-9188-533577631108",
+  "map" : {
+    "detection" : {
+      "Source" : "winlog.channel",
+      "EventID" : "event.code",
+      "Message" : "winlog.event_data.Payload"
+    }
+  }
+}

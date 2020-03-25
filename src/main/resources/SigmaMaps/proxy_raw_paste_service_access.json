@@ -1,0 +1,13 @@
+{
+  "id" : "5468045b-4fcc-4d1a-973c-c9c9578edacb",
+  "map" : {
+    "detection" : {
+      "c-uri" : "url.query"
+    },
+    "fields" : {
+      "ClientIP" : "client.ip",
+      "c-uri" : "url.query",
+      "c-useragent" : "user_agent.original"
+    }
+  }
+}

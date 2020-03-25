@@ -1,0 +1,9 @@
+{
+  "id" : "69aeb277-f15f-4d2d-b32a-55e883609563",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "AuditPolicyChanges" : "winlog.event_data.AuditPolicyChanges"
+    }
+  }
+}

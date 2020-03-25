@@ -1,0 +1,18 @@
+{
+  "id" : "47e0852a-cf81-4494-a8e6-31864f8c86ed",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "TargetObject" : "winlog.event_data.TargetObject",
+      "Command" : "process.args"
+    },
+    "fields" : {
+      "EventID" : "event.code",
+      "CommandLine" : "process.args",
+      "ParentCommandLine" : "parent.executable",
+      "Image" : "process.executable",
+      "User" : "nybble.user.full",
+      "TargetObject" : "winlog.event_data.TargetObject"
+    }
+  }
+}

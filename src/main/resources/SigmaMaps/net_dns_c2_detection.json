@@ -1,0 +1,8 @@
+{
+  "id" : "1ec4b281-aa65-46a2-bdae-5fd830ed914e",
+  "map" : {
+    "detection" : {
+      "parent_domain" : "dns.question.registered_domain"
+    }
+  }
+}

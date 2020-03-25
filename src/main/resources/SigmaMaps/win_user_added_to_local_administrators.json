@@ -1,0 +1,11 @@
+{
+  "id" : "c265cf08-3f99-46c1-8d59-328247057d57",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "GroupName" : "winlog.event_data.GroupName",
+      "GroupSid" : "winlog.event_data.GroupSid",
+      "SubjectUserName" : "winlog.event_data.SubjectUserName"
+    }
+  }
+}

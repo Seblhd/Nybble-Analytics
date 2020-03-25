@@ -1,0 +1,8 @@
+{
+  "id" : "c67e0c98-4d39-46ee-8f6b-437ebf6b950e",
+  "map" : {
+    "detection" : {
+      "expression" : "message"
+    }
+  }
+}

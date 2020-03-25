@@ -1,0 +1,9 @@
+{
+  "id" : "36480ae1-a1cb-4eaa-a0d6-29801d7e9142",
+  "map" : {
+    "detection" : {
+      "OriginalFileName" : "process.name",
+      "Image" : "process.executable"
+    }
+  }
+}

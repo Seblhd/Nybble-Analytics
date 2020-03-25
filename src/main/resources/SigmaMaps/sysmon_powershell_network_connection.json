@@ -1,0 +1,13 @@
+{
+  "id" : "1f21ec3f-810d-4b0e-8045-322202e22b4b",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "Image" : "process.executable",
+      "Initiated" : "nybble.network.initiated.flag",
+      "DestinationIp" : "destination.ip",
+      "DestinationIsIpv6" : "nybble.destination.ipv6.flag",
+      "User" : "nybble.user.full"
+    }
+  }
+}

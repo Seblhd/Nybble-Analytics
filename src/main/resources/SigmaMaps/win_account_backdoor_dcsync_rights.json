@@ -1,0 +1,10 @@
+{
+  "id" : "2c99737c-585d-4431-b61a-c911d86ff32f",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "LDAPDisplayName" : "winlog.event_data.AttributeLDAPDisplayName",
+      "Value" : "winlog.event_data.AttributeValue"
+    }
+  }
+}

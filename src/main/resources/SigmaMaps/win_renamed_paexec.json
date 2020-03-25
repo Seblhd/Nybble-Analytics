@@ -1,0 +1,10 @@
+{
+  "id" : "7b0666ad-3e38-4e3d-9bab-78b06de85f7b",
+  "map" : {
+    "detection" : {
+      "Product" : "winlog.event_data.Product",
+      "Imphash" : "hash.imphash",
+      "Image" : "process.executable"
+    }
+  }
+}

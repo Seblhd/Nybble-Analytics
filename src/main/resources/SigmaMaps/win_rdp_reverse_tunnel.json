@@ -1,0 +1,12 @@
+{
+  "id" : "5bed80b6-b3e8-428e-a3ae-d3c757589e41",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "SourcePort" : "source.port",
+      "DestinationAddress" : "destination.ip",
+      "DestinationPort" : "destination.port",
+      "SourceAddress" : "source.ip"
+    }
+  }
+}

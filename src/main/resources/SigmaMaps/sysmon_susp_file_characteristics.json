@@ -1,0 +1,15 @@
+{
+  "id" : "9637e8a5-7131-4f7f-bdc7-2b05d8670c43",
+  "map" : {
+    "detection" : {
+      "Description" : "winlog.event_data.Description",
+      "FileVersion" : "winlog.event_data.FileVersion",
+      "Product" : "winlog.event_data.Product",
+      "Company" : "winlog.event_data.Company"
+    },
+    "fields" : {
+      "CommandLine" : "process.args",
+      "ParentCommandLine" : "parent.executable"
+    }
+  }
+}

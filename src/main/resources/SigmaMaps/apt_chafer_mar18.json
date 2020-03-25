@@ -1,0 +1,16 @@
+{
+  "id" : "53ba33fd-3a50-4468-a5ef-c583635cfa92",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "ServiceName" : "winlog.event_data.ServiceName",
+      "TaskName" : "winlog.event_data.TaskName",
+      "TargetObject" : "winlog.event_data.TargetObject",
+      "EventType" : "winlog.event_data.EventType",
+      "Details" : "winlog.event_data.Details",
+      "CommandLine" : "process.args",
+      "Image" : "process.executable",
+      "ParentImage" : "process.parent.executable"
+    }
+  }
+}

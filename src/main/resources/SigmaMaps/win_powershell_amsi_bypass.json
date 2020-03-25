@@ -1,0 +1,9 @@
+{
+  "id" : "30edb182-aa75-42c0-b0a9-e998bb29067c",
+  "map" : {
+    "detection" : {
+      "CommandLine" : "process.args",
+      "falsepositives" : "message"
+    }
+  }
+}

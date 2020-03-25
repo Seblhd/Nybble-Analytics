@@ -1,0 +1,10 @@
+{
+  "id" : "3d304fda-78aa-43ed-975c-d740798a49c1",
+  "map" : {
+    "detection" : {
+      "encoded" : "message",
+      "hidden" : "message",
+      "noninteractive" : "message"
+    }
+  }
+}

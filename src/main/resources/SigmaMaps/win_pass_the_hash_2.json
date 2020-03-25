@@ -1,0 +1,13 @@
+{
+  "id" : "8eef149c-bd26-49f2-9e5a-9b00e3af499b",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "SubjectUserSid" : "winlog.event_data.SubjectUserSid",
+      "LogonType" : "winlog.event_data.LogonType",
+      "LogonProcessName" : "winlog.event_data.LogonProcessName",
+      "KeyLength" : "winlog.event_data.KeyLength",
+      "AccountName" : "winlog.event_data.AccountName"
+    }
+  }
+}

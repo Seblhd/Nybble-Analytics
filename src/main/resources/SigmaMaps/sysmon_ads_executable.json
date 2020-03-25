@@ -1,0 +1,13 @@
+{
+  "id" : "b69888d4-380c-45ce-9cf9-d9ce46e67821",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "Imphash" : "hash.imphash"
+    },
+    "fields" : {
+      "TargetFilename" : "winlog.event_data.TargetFileName",
+      "Image" : "process.executable"
+    }
+  }
+}

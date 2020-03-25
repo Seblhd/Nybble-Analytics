@@ -1,0 +1,8 @@
+{
+  "id" : "5afee48e-67dd-4e03-a783-f74259dcf998",
+  "map" : {
+    "detection" : {
+      "CommandLine" : "process.args"
+    }
+  }
+}

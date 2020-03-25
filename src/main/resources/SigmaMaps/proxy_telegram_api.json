@@ -1,0 +1,14 @@
+{
+  "id" : "b494b165-6634-483d-8c47-2026a6c52372",
+  "map" : {
+    "detection" : {
+      "r-dns" : "dns.question.name",
+      "c-useragent" : "user_agent.original"
+    },
+    "fields" : {
+      "ClientIP" : "client.ip",
+      "c-uri" : "url.query",
+      "c-useragent" : "user_agent.original"
+    }
+  }
+}

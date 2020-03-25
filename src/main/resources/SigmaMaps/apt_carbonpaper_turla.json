@@ -1,0 +1,9 @@
+{
+  "id" : "1df8b3da-b0ac-4d8a-b7c7-6cb7c24160e4",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "ServiceName" : "winlog.event_data.ServiceName"
+    }
+  }
+}

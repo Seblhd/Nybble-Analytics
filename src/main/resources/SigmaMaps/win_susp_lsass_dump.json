@@ -1,0 +1,11 @@
+{
+  "id" : "aa1697b7-d611-4f9a-9cb2-5125b4ccfd5c",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "ProcessName" : "winlog.event_data.ProcessName",
+      "AccessMask" : "winlog.event_data.AccessMask",
+      "ObjectType" : "winlog.event_data.ObjectType"
+    }
+  }
+}

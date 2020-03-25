@@ -1,0 +1,10 @@
+{
+  "id" : "958d81aa-8566-4cea-a565-59ccd4df27b0",
+  "map" : {
+    "detection" : {
+      "CommandLine" : "process.args",
+      "EventID" : "event.code",
+      "TaskName" : "winlog.event_data.TaskName"
+    }
+  }
+}

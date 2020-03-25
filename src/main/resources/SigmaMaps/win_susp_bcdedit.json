@@ -1,0 +1,9 @@
+{
+  "id" : "c9fbe8e9-119d-40a6-9b59-dd58a5d84429",
+  "map" : {
+    "detection" : {
+      "NewProcessName" : "winlog.event_data.NewProcessName",
+      "ProcessCommandLine" : "process.args"
+    }
+  }
+}

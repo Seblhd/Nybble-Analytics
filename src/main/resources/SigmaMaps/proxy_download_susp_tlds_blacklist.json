@@ -1,0 +1,13 @@
+{
+  "id" : "00d0b5ab-1f55-4120-8e83-487c0a7baf19",
+  "map" : {
+    "detection" : {
+      "c-uri-extension" : "url.extension",
+      "r-dns" : "dns.question.name"
+    },
+    "fields" : {
+      "ClientIP" : "client.ip",
+      "c-uri" : "url.query"
+    }
+  }
+}

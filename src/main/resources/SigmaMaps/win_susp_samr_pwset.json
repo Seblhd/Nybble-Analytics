@@ -1,0 +1,10 @@
+{
+  "id" : "7818b381-5eb1-4641-bea5-ef9e4cfb5951",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "RelativeTargetName" : "winlog.event_data.RelativeTargetName",
+      "PasswordLastSet" : "winlog.event_data.PasswordLastSet"
+    }
+  }
+}

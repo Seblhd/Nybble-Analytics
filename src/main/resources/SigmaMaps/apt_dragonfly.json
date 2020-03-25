@@ -1,0 +1,8 @@
+{
+  "id" : "04d9079e-3905-4b70-ad37-6bdf11304965",
+  "map" : {
+    "detection" : {
+      "Image" : "process.executable"
+    }
+  }
+}

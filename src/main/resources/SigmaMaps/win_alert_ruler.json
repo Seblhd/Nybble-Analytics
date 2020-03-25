@@ -1,0 +1,10 @@
+{
+  "id" : "24549159-ac1b-479c-8175-d42aea947cae",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "Workstation" : "winlog.event_data.Workstation",
+      "WorkstationName" : "source.domain"
+    }
+  }
+}

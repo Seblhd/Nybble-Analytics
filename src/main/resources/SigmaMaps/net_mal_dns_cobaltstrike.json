@@ -1,0 +1,8 @@
+{
+  "id" : "2975af79-28c4-4d2f-a951-9095f229df29",
+  "map" : {
+    "detection" : {
+      "query" : "dns.question.name"
+    }
+  }
+}

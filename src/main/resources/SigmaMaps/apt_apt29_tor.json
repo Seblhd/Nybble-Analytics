@@ -1,0 +1,10 @@
+{
+  "id" : "c069f460-2b87-4010-8dcf-e45bab362624",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "ServiceName" : "winlog.event_data.ServiceName",
+      "Image" : "process.executable"
+    }
+  }
+}

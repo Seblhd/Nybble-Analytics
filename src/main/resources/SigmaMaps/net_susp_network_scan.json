@@ -1,0 +1,13 @@
+{
+  "id" : "fab0ddf0-b8a9-4d70-91ce-a20547209afb",
+  "map" : {
+    "detection" : {
+      "action" : "event.outcome"
+    },
+    "fields" : {
+      "src_ip" : "source.ip",
+      "dst_ip" : "destination.ip",
+      "dst_port" : "destination.port"
+    }
+  }
+}

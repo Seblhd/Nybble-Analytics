@@ -1,0 +1,13 @@
+{
+  "id" : "c42a3073-30fb-48ae-8c99-c23ada84b103",
+  "map" : {
+    "detection" : {
+      "c-useragent" : "user_agent.original"
+    },
+    "fields" : {
+      "ClientIP" : "client.ip",
+      "c-uri" : "url.query",
+      "c-useragent" : "user_agent.original"
+    }
+  }
+}

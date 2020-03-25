@@ -1,0 +1,10 @@
+{
+  "id" : "f69a87ea-955e-4fb4-adb2-bb9fd6685632",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "DeviceClassName" : "winlog.event_data.DeviceClassName",
+      "DeviceDescription" : "winlog.event_data.DeviceDescription"
+    }
+  }
+}

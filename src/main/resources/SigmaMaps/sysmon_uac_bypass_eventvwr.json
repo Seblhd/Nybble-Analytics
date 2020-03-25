@@ -1,0 +1,15 @@
+{
+  "id" : "7c81fec3-1c1d-43b0-996a-46753041b1b6",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "TargetObject" : "winlog.event_data.TargetObject",
+      "ParentImage" : "process.parent.executable",
+      "Image" : "process.executable"
+    },
+    "fields" : {
+      "CommandLine" : "process.args",
+      "ParentCommandLine" : "parent.executable"
+    }
+  }
+}

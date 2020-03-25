@@ -1,0 +1,9 @@
+{
+  "id" : "2158f96f-43c2-43cb-952a-ab4580f32382",
+  "map" : {
+    "detection" : {
+      "Image" : "process.executable",
+      "CommandLine" : "process.args"
+    }
+  }
+}

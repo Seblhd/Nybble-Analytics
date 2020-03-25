@@ -1,0 +1,9 @@
+{
+  "id" : "2632954e-db1c-49cb-9936-67d1ef1d17d2",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "SidHistory" : "winlog.event_data.SidHistory"
+    }
+  }
+}

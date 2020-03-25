@@ -1,0 +1,13 @@
+{
+  "id" : "bed2a484-9348-4143-8a8a-b801c979301c",
+  "map" : {
+    "detection" : {
+      "ParentImage" : "process.parent.executable",
+      "CommandLine" : "process.args"
+    },
+    "fields" : {
+      "CommandLine" : "process.args",
+      "ParentCommandLine" : "parent.executable"
+    }
+  }
+}

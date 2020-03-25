@@ -1,0 +1,9 @@
+{
+  "id" : "8ae51330-899c-4641-8125-e39f2e07da72",
+  "map" : {
+    "detection" : {
+      "record_type" : "dns.answers.type",
+      "answer" : "dns.answers.name"
+    }
+  }
+}

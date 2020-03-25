@@ -1,0 +1,9 @@
+{
+  "id" : "7b434893-c57d-4f41-908d-6a17bf1ae98f",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "Image" : "process.executable"
+    }
+  }
+}

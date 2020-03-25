@@ -1,0 +1,10 @@
+{
+  "id" : "4976aa50-8f41-45c6-8b15-ab3fc10e79ed",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "Message" : "winlog.event_data.Payload",
+      "HiveName" : "winlog.event_data.HiveName"
+    }
+  }
+}

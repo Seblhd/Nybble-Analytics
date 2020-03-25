@@ -1,0 +1,12 @@
+{
+  "id" : "aeab5ec5-be14-471a-80e8-e344418305c2",
+  "map" : {
+    "detection" : {
+      "Image" : "process.executable"
+    },
+    "fields" : {
+      "CommandLine" : "process.args",
+      "ParentCommandLine" : "parent.executable"
+    }
+  }
+}

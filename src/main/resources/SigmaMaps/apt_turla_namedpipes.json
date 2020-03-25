@@ -1,0 +1,9 @@
+{
+  "id" : "739915e4-1e70-4778-8b8a-17db02f66db1",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "PipeName" : "winlog.event_data.PipeName"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "id" : "192a0330-c20b-4356-90b6-7b7049ae0b87",
+  "map" : {
+    "detection" : {
+      "EventID" : "event.code",
+      "LogonType" : "winlog.event_data.LogonType",
+      "LogonProcessName" : "winlog.event_data.LogonProcessName",
+      "AuthenticationPackageName" : "winlog.event_data.AuthenticationPackageName"
+    }
+  }
+}

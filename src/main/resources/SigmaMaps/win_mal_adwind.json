@@ -1,0 +1,12 @@
+{
+  "id" : "1fac1481-2dbc-48b2-9096-753c49b4ec71",
+  "map" : {
+    "detection" : {
+      "CommandLine" : "process.args",
+      "EventID" : "event.code",
+      "TargetFilename" : "winlog.event_data.TargetFileName",
+      "TargetObject" : "winlog.event_data.TargetObject",
+      "Details" : "winlog.event_data.Details"
+    }
+  }
+}

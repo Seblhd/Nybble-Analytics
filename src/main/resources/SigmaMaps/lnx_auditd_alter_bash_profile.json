@@ -1,0 +1,9 @@
+{
+  "id" : "e74e15cc-c4b6-4c80-b7eb-dfe49feb7fe9",
+  "map" : {
+    "detection" : {
+      "type" : "event.type",
+      "name" : "auditd.paths.name"
+    }
+  }
+}
