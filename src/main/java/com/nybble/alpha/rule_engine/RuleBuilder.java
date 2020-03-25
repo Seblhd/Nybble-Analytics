@@ -13,7 +13,7 @@ public class RuleBuilder {
     private static StringBuilder jsonPathRule = new StringBuilder();
     private static StringBuilder finalRuleBuilder = new StringBuilder();
     private static Boolean precededByNot = false;
-    private static Boolean hasSearchOperator = false;
+    private static Boolean toEnclosed = false;
 
     public String jsonPathBuilder(Map<String, List<String>> selectionMap, List<String> conditionList) {
 
@@ -23,6 +23,7 @@ public class RuleBuilder {
         // Initiate condition ListIterator
         ListIterator<String> conditionIterator = conditionList.listIterator();
 
+        // If condition lit contains any of the search operator, selections need to be enclosed.
         if(conditionList.stream().anyMatch(operators -> searchOperators.contains(operators))) {
             // TODO
             // Remove ( and ) from operators list and check in another part of loop.
@@ -30,7 +31,15 @@ public class RuleBuilder {
             // At the end of the loop append ) of jsonPathRule if hasSearchOperator is true and switch back to false after append.
             System.out.println("Condition list is containing operators from search operators list");
             System.out.println("Condition list value : " + conditionList);
-            hasSearchOperator = true;
+
+            // Check if enclosment has been correclty done in the rule.
+            // If yes, no need to add parenthesis enclosure.
+            // If no, set "toEnclosed" to true, to enclose all selections.
+            if (conditionList.get(0).equals("(")) {
+
+            } else {
+                toEnclosed = true;
+            }
         }
 
         while (conditionIterator.hasNext()) {
@@ -206,5 +215,9 @@ public class RuleBuilder {
         }
 
         return finalRuleBuilder.toString();
+    }
+
+    private void parenthesisEnclosureCheck(List<String> conditionList) {
+
     }
 }
