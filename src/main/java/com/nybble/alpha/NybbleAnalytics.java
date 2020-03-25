@@ -43,12 +43,6 @@ public class NybbleAnalytics {
 				.keyBy(new ControlDynamicKey());
 		sigmaRuleSourceStream.print();
 
-		// Create a Broadcast State
-		//MapStateDescriptor<Void, ObjectNode> broadcastRuleDescriptor = new MapStateDescriptor<>("sigmaRule", Types.VOID, Types.GENERIC(ObjectNode.class));
-
-		// Create a Sigma Rule Broadcast stream from Sigma Rule Pattern stream and with broadcastRuleDescriptor
-		//BroadcastStream<ObjectNode> broadcastRuleStream = sigmaRuleSourceStream.broadcast(broadcastRuleDescriptor);
-
 		// Create Security Event (From Kafka) Stream
 		DataStream<ObjectNode> windowsLogsStream = env.addSource(windowsLogsConsumer)
 				.map(new MapFunction<ObjectNode, ObjectNode>() {
@@ -64,36 +58,13 @@ public class NybbleAnalytics {
 				.apply(new EventWindowFunction());
 		//windowsLogsStream.print();
 
-		// Create Security Event (From Kafka) Stream
-		/*DataStream<ObjectNode> windowsLogsStream = env.addSource(windowsLogsConsumer)
-				.map(new MapFunction<ObjectNode, ObjectNode>() {
-					@Override
-					public ObjectNode map(ObjectNode eventNodes) throws Exception {
-						return eventNodes.get("value").deepCopy();
-					}
-				})
-				.process(new MultipleEventProcess());*/
-
-		/*KeyedStream<ObjectNode, ObjectNode> keyedEventLogsStream = windowsLogsStream
-				.keyBy(new EventDynamicKey());
-				//.timeWindow(Time.days(1))
-				//.trigger(new EventStreamTrigger())
-				//.apply(new EventWindowFunction());
-				//.keyBy(new EventDynamicKey());*/
-
 
 		// Create a Sigma Alert Stream containing events filtered from rules.
-		// To be modified later when real alerting will be good.
-		/*DataStream<ObjectNode> alertStream = windowsLogsStream
-				.connect(sigmaRuleSourceStream)
-				.flatMap(new ControlEventMatcher());
-		alertStream.print();*/
-
-		DataStream<ObjectNode> alertStream = sigmaRuleSourceStream
+		/*DataStream<ObjectNode> alertStream = sigmaRuleSourceStream
 				.connect(windowsLogsStream)
 				.flatMap(new LogSourceMatcher())
 				.flatMap(new ControlEventMatcher());
-		alertStream.print();
+		alertStream.print();*/
 
 		// execute program
 		env.execute("Flink Nybble Analytics SIEM");

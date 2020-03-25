@@ -1,5 +1,7 @@
 package com.nybble.alpha.rule_engine;
 
+import org.apache.commons.collections.CollectionUtils;
+
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
@@ -11,6 +13,7 @@ public class RuleBuilder {
     private static StringBuilder jsonPathRule = new StringBuilder();
     private static StringBuilder finalRuleBuilder = new StringBuilder();
     private static Boolean precededByNot = false;
+    private static Boolean hasSearchOperator = false;
 
     public String jsonPathBuilder(Map<String, List<String>> selectionMap, List<String> conditionList) {
 
@@ -19,6 +22,16 @@ public class RuleBuilder {
 
         // Initiate condition ListIterator
         ListIterator<String> conditionIterator = conditionList.listIterator();
+
+        if(conditionList.stream().anyMatch(operators -> searchOperators.contains(operators))) {
+            // TODO
+            // Remove ( and ) from operators list and check in another part of loop.
+            // Append ( at the beginning of jsonPathRule if hasSearchOperator is true
+            // At the end of the loop append ) of jsonPathRule if hasSearchOperator is true and switch back to false after append.
+            System.out.println("Condition list is containing operators from search operators list");
+            System.out.println("Condition list value : " + conditionList);
+            hasSearchOperator = true;
+        }
 
         while (conditionIterator.hasNext()) {
             String condition = conditionIterator.next();

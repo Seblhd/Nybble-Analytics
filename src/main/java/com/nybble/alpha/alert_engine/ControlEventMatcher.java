@@ -42,7 +42,7 @@ public class ControlEventMatcher implements FlatMapFunction<Tuple2<ObjectNode, A
 
                 controlRule = controlRuleBuilder.append("\"").append(controlRule).append("\"").toString();
 
-                System.out.println("Control rule is : " + controlRule);
+                //System.out.println("Control rule is : " + controlRule);
 
 
                 // Works with this config.
