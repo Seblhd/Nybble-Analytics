@@ -199,15 +199,28 @@ public class RuleBuilder {
         return matchCount;
     }
 
-    private void listConverter (Map<String, List<String>> selectionMap ,String condition) {
+    private void listConverter (Map<String, List<String>> selectionMap ,String key) {
         AtomicInteger x = new AtomicInteger();
+        boolean multiValueList = false;
 
-        for(String selectValue : selectionMap.get(condition)) {
+        if (selectionMap.get(key).size() > 1) {
+            multiValueList = true;
+            jsonPathRule.append("(");
+        }
+
+        // For each selection fields, get the value and append to jsonPath rule string builder.
+        // Each value in selection field list is linked by AND Operator.
+        // If there is more than one value in selection field list for current key, then values need to be enclosed with parenthesis.
+        for(String selectValue : selectionMap.get(key)) {
             jsonPathRule.append(selectValue);
-            if(x.get() + 1 < selectionMap.get(condition).size()) {
+            if(x.get() + 1 < selectionMap.get(key).size()) {
                 x.getAndIncrement();
                 jsonPathRule.append(" && ");
             }
+        }
+
+        if (multiValueList) {
+            jsonPathRule.append(")");
         }
     }
 

@@ -60,11 +60,11 @@ public class NybbleAnalytics {
 
 
 		// Create a Sigma Alert Stream containing events filtered from rules.
-		/*DataStream<ObjectNode> alertStream = sigmaRuleSourceStream
+		DataStream<ObjectNode> alertStream = sigmaRuleSourceStream
 				.connect(windowsLogsStream)
 				.flatMap(new LogSourceMatcher())
 				.flatMap(new ControlEventMatcher());
-		alertStream.print();*/
+		alertStream.print();
 
 		// execute program
 		env.execute("Flink Nybble Analytics SIEM");

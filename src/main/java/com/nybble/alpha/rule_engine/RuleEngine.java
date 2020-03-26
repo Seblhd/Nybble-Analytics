@@ -114,8 +114,6 @@ public class RuleEngine {
                 if (sigmaDetectionFieldMap.getKey().equals("condition")) {
 
                     conditionNode = new ConditionConverter().conditionConvert(sigmaDetectionFieldMap.getValue());
-
-                    //System.out.println("conditionNode is : " + conditionNode.toString());
                 }
             }
         }

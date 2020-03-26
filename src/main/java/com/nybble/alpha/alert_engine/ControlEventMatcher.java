@@ -40,15 +40,15 @@ public class ControlEventMatcher implements FlatMapFunction<Tuple2<ObjectNode, A
 
                 controlRule = controlNode.get("rule").get(0).get("jsonpathrule").asText();
 
-                controlRule = controlRuleBuilder.append("\"").append(controlRule).append("\"").toString();
+                //controlRule = controlRuleBuilder.append("\"").append(controlRule).append("\"").toString();
 
                 //System.out.println("Control rule is : " + controlRule);
 
 
                 // Works with this config.
-                //List<ObjectNode> eventMatch = JsonPath.using(jsonPathConfig)
-                        //.parse(jsonMapper.writeValueAsString(controlEventTuple.f0))
-                        //.read(controlRule);
+                List<ObjectNode> eventMatch = JsonPath.using(jsonPathConfig)
+                        .parse(jsonMapper.writeValueAsString(controlEventTuple.f0))
+                        .read(controlRule);
 
                 //List<ObjectNode> eventMatch = JsonPath.read(jsonMapper.writeValueAsString(controlEventTuple.f0), controlRule);
 
@@ -64,14 +64,14 @@ public class ControlEventMatcher implements FlatMapFunction<Tuple2<ObjectNode, A
                         //"$[?(@.winlog.event_data.TargetUserName =~ /^l.seb.*$/ && @.log.level == \"information\" && @.winlog.event_data.UserAccountControl =~ /.*\n\t\t%%2082\n\t\t%%2084/ && (@.winlog.event_id == 4720 || @.winlog.event_id == 4721))]");
 
 
-                List<ObjectNode> eventMatch = JsonPath.read(controlEventTuple.f0.toString(), "$[?((@.process.args =~ /^.*mshta vbscript:CreateObject\\(\"Wscript.Shell\"\\).*$/ || @.process.args =~ /^.*mshta vbscript:Execute\\(\"Execute.*$/ || @.process.args =~ /^.*mshta vbscript:CreateObject\\(\"Wscript.Shell\"\\).Run\\(\"mshta.exe.*$/) || ((@.process.executable == 'C:\\Windows\\system32\\mshta.exe') && (@.process.args =~ /^.*.jpg.*$/ || @.process.args =~ /^.*.png.*$/ || @.process.args =~ /^.*.lnk.*$/ || @.process.args =~ /^.*.xls.*$/ || @.process.args =~ /^.*.doc.*$/ || @.process.args =~ /^.*.zip.*$/)))]");
+                //List<ObjectNode> eventMatch = JsonPath.read(controlEventTuple.f0.toString(), "$[?(@.process.args =~ /^.*mshta vbscript:CreateObject\\(\"Wscript.Shell\"\\).*$/ || @.process.args =~ /^.*mshta vbscript:Execute\\(\"Execute.*$/ || @.process.args =~ /^.*mshta vbscript:CreateObject\\(\"Wscript.Shell\"\\).Run\\(\"mshta.exe.*$/)]");
 
                 /*if (!eventMatch.isEmpty()) {
                     //System.out.println("Events are : " + controlEventTuple.f0.toString());
                     collector.collect(controlEventTuple.f0);
                 }*/
             } catch (Exception e) {
-                //System.out.println("Error on rule : " + controlRule);
+                System.out.println("Error on rule : " + controlRule);
                 e.printStackTrace();
             }
 
