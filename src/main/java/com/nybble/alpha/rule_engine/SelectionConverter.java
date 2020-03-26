@@ -188,7 +188,8 @@ public class SelectionConverter {
             } else if (textValue.isEmpty()) {
                 selectionFieldBuilder.append("@.").append(selectionKey).append(" == \"\"");
             } else {
-                selectionFieldBuilder.append("@.").append(selectionKey).append(" == ").append("'").append(textValue).append("'");
+                // Even when value is enclosed in single quote, backslash need to be escaped.
+                selectionFieldBuilder.append("@.").append(selectionKey).append(" == ").append("'").append(textValue.replaceAll("\\\\", "\\\\\\\\")).append("'");
             }
         } else if (selectionValue.isNumber()) {
             // Check if Transformations (Value Modifiers) are used.

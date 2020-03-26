@@ -16,7 +16,6 @@ public class ControlEventMatcher implements FlatMapFunction<Tuple2<ObjectNode, A
 
     private static String event;
     private ObjectMapper jsonMapper = new ObjectMapper();
-    private static StringBuilder controlRuleBuilder = new StringBuilder();
     @JsonRawValue
     private String controlRule;
 
@@ -36,11 +35,7 @@ public class ControlEventMatcher implements FlatMapFunction<Tuple2<ObjectNode, A
         for (ObjectNode controlNode : controlEventTuple.f1) {
             try {
 
-                controlRuleBuilder.setLength(0);
-
                 controlRule = controlNode.get("rule").get(0).get("jsonpathrule").asText();
-
-                //controlRule = controlRuleBuilder.append("\"").append(controlRule).append("\"").toString();
 
                 //System.out.println("Control rule is : " + controlRule);
 
@@ -64,7 +59,7 @@ public class ControlEventMatcher implements FlatMapFunction<Tuple2<ObjectNode, A
                         //"$[?(@.winlog.event_data.TargetUserName =~ /^l.seb.*$/ && @.log.level == \"information\" && @.winlog.event_data.UserAccountControl =~ /.*\n\t\t%%2082\n\t\t%%2084/ && (@.winlog.event_id == 4720 || @.winlog.event_id == 4721))]");
 
 
-                //List<ObjectNode> eventMatch = JsonPath.read(controlEventTuple.f0.toString(), "$[?(@.process.args =~ /^.*mshta vbscript:CreateObject\\(\"Wscript.Shell\"\\).*$/ || @.process.args =~ /^.*mshta vbscript:Execute\\(\"Execute.*$/ || @.process.args =~ /^.*mshta vbscript:CreateObject\\(\"Wscript.Shell\"\\).Run\\(\"mshta.exe.*$/)]");
+                //List<ObjectNode> eventMatch = JsonPath.read(controlEventTuple.f0.toString(), "$[?(@.process.executable =~ /^.*\\GUP\\.exe/ && !(@.process.executable =~ /C:\\Users\\\\.*\\AppData\\Local\\Notepad\\+\\+\\updater\\gup\\.exe/ || @.process.executable =~ /C:\\Users\\\\.*\\AppData\\Roaming\\Notepad\\+\\+\\updater\\gup\\.exe/ || @.process.executable == 'C:\\Program Files\\Notepad++\\updater\\gup.exe' || @.process.executable == 'C:\\Program Files (x86)\\Notepad++\\updater\\gup.exe'))]");
 
                 /*if (!eventMatch.isEmpty()) {
                     //System.out.println("Events are : " + controlEventTuple.f0.toString());
