@@ -14,6 +14,7 @@ public class RuleBuilder {
     private static StringBuilder finalRuleBuilder = new StringBuilder();
     private static Boolean precededByNot = false;
     private static Boolean toEnclosed = false;
+    private static Boolean hasOperators = false;
 
     public String jsonPathBuilder(Map<String, List<String>> selectionMap, List<String> conditionList) {
 
@@ -25,21 +26,20 @@ public class RuleBuilder {
 
         // If condition lit contains any of the search operator, selections need to be enclosed.
         if(conditionList.stream().anyMatch(operators -> searchOperators.contains(operators))) {
-            // TODO
-            // Remove ( and ) from operators list and check in another part of loop.
-            // Append ( at the beginning of jsonPathRule if hasSearchOperator is true
-            // At the end of the loop append ) of jsonPathRule if hasSearchOperator is true and switch back to false after append.
-            System.out.println("Condition list is containing operators from search operators list");
-            System.out.println("Condition list value : " + conditionList);
-
+            hasOperators = true;
             // Check if enclosment has been correclty done in the rule.
             // If yes, no need to add parenthesis enclosure.
             // If no, set "toEnclosed" to true, to enclose all selections.
-            if (conditionList.get(0).equals("(")) {
-
+            if (conditionList.contains("(") || conditionList.contains(")")) {
+                parenthesisEnclosureCheck(conditionList);
             } else {
                 toEnclosed = true;
             }
+        }
+
+        // Before any other element, append the first parenthesis if toEnclosed is true.
+        if (toEnclosed) {
+            jsonPathRule.append("(");
         }
 
         while (conditionIterator.hasNext()) {
@@ -174,6 +174,13 @@ public class RuleBuilder {
             }
         }
 
+        // After all other element, append the last parenthesis if toEnclosed is true.
+        // Then set toEnclosed to false.
+        if (toEnclosed) {
+            jsonPathRule.append(")");
+            toEnclosed = false;
+        }
+
         // Add last operators with or without parenthesis.
         String finalRule = finalRuleOperator(jsonPathRule);
 
@@ -208,10 +215,14 @@ public class RuleBuilder {
         // Reset String builder before using it
         finalRuleBuilder.setLength(0);
 
-        if (jsonPathRule.toString().startsWith("(") && jsonPathRule.toString().endsWith(")")) {
+        if (hasOperators) {
             finalRuleBuilder.append("$[?").append(jsonPathRule).append("]");
+            // Reset hasOperators at end of final building
+            hasOperators = false;
         } else {
             finalRuleBuilder.append("$[?(").append(jsonPathRule).append(")]");
+            // Reset hasOperators at end of final building
+            hasOperators = false;
         }
 
         return finalRuleBuilder.toString();
@@ -219,5 +230,29 @@ public class RuleBuilder {
 
     private void parenthesisEnclosureCheck(List<String> conditionList) {
 
+        boolean opBetweenEnclosure = false;
+        int listSize = conditionList.size();
+        int parenthesisPair = 0;
+
+        for (String condition : conditionList) {
+            if (condition.equals("(")) {
+                parenthesisPair += 1;
+            } else if (condition.equals(")")) {
+                parenthesisPair -= 1;
+            }
+            // If there is some search operators between parenthesis, then switch Operators Between enclosure to true.
+            // In this case, the whole rule will need to be enclosed.
+            if (parenthesisPair == 0 && (condition.toLowerCase().equals("and")
+                    || condition.toLowerCase().equals("or")
+                    || condition.toLowerCase().equals("not"))) {
+                opBetweenEnclosure = true;
+            }
+        }
+
+        if (conditionList.get(0).equals("(") && conditionList.get(listSize-1).equals(")") && parenthesisPair==0 && !opBetweenEnclosure) {
+            toEnclosed = false;
+        } else {
+            toEnclosed =true;
+        }
     }
 }

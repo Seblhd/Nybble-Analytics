@@ -42,14 +42,6 @@ public class RuleEngine {
 
         ObjectNode controlEvent = jsonMapper.createObjectNode();
 
-        //fab0ddf0-b8a9-4d70-91ce-a20547209afb
-        //f69a87ea-955e-4fb4-adb2-bb9fd6685632
-        //1ec4b281-aa65-46a2-bdae-5fd830ed914e
-
-        // For the moment multiple part YAML file can not been manage, so filter them
-        // Test with net_susp_network_scan.yml rule (Aggregation test)
-        //if (sigmaJsonRule.get("id").asText().equals("1ec4b281-aa65-46a2-bdae-5fd830ed914e")) {
-
         // Retrieve the current RuleID
         String currentRuleId = sigmaJsonRule.get("id").toString();
 
@@ -206,8 +198,6 @@ public class RuleEngine {
 
         // Append final ArrayNode containing all "Selection" from Sigma Rule to Event Control Node.
         controlEvent.putArray("rule").addAll(ruleArrayNode);
-
-    //}
 
     return controlEvent;
 
