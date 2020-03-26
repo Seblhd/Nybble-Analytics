@@ -37,9 +37,6 @@ public class ControlEventMatcher implements FlatMapFunction<Tuple2<ObjectNode, A
 
                 controlRule = controlNode.get("rule").get(0).get("jsonpathrule").asText();
 
-                //System.out.println("Control rule is : " + controlRule);
-
-
                 // Works with this config.
                 List<ObjectNode> eventMatch = JsonPath.using(jsonPathConfig)
                         .parse(jsonMapper.writeValueAsString(controlEventTuple.f0))

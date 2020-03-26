@@ -98,9 +98,19 @@ public class RuleBuilder {
                     }
                 } else {
                     if (precededByNot){
-                        jsonPathRule.append("!").append(nextCondition);
+                        for(String selectValue : selectionMap.get(nextCondition)) {
+                            jsonPathRule.append("!").append(selectValue);
+                            for(int x = 1;x  < selectionMap.get(nextCondition).size(); x++) {
+                                jsonPathRule.append(" && ");
+                            }
+                        }
                     } else if (!precededByNot){
-                        jsonPathRule.append(nextCondition);
+                        for(String selectValue : selectionMap.get(nextCondition)) {
+                            jsonPathRule.append(selectValue);
+                            for(int x = 1;x  < selectionMap.get(nextCondition).size(); x++) {
+                                jsonPathRule.append(" && ");
+                            }
+                        }
                     }
                 }
                 // Switch preceded to false for next "not"
@@ -137,9 +147,19 @@ public class RuleBuilder {
                     }
                 } else {
                     if (precededByNot){
-                        jsonPathRule.append("!").append(nextCondition);
+                        for(String selectValue : selectionMap.get(nextCondition)) {
+                            jsonPathRule.append("!").append(selectValue);
+                            for(int x = 1;x  < selectionMap.get(nextCondition).size(); x++) {
+                                jsonPathRule.append(" && ");
+                            }
+                        }
                     } else if (!precededByNot){
-                        jsonPathRule.append(nextCondition);
+                        for(String selectValue : selectionMap.get(nextCondition)) {
+                            jsonPathRule.append(selectValue);
+                            for(int x = 1;x  < selectionMap.get(nextCondition).size(); x++) {
+                                jsonPathRule.append(" && ");
+                            }
+                        }
                     }
                 }
                 // Switch preceded to false for next "not"

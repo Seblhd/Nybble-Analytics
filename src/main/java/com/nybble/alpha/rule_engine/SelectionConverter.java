@@ -47,9 +47,6 @@ public class SelectionConverter {
         finalFieldBuilder.append("(");
         AtomicInteger x = new AtomicInteger();
 
-        //System.out.println("Array selection key is : " + arraySelectionKey);
-        //System.out.println("Array selection vamue is : " + arraySelectionValue.toString());
-
         // For each element (field) of Array return String corresponding to JsonPath condition.
         arraySelectionValue.forEach(element -> {
 
