@@ -16,7 +16,7 @@ public class MultipleRulesProcess extends ProcessFunction<ObjectNode, ObjectNode
     }*/
 
     @Override
-    public void processElement(ObjectNode controlNode, Context context, Collector<ObjectNode> collector) throws Exception {
+    public void processElement(ObjectNode controlNode, Context context, Collector<ObjectNode> collector) {
 
         if (controlNode.get("rule").size() > 1) {
             for (int x = 0; x < controlNode.get("rule").size(); x++) {
@@ -27,6 +27,7 @@ public class MultipleRulesProcess extends ProcessFunction<ObjectNode, ObjectNode
                 // Create a new Array and a new node for each separate rules
                 singleRuleArray.add(controlNode.get("rule").get(x));
                 singleRuleControl.put("ruleid", controlNode.get("ruleid").asText());
+                singleRuleControl.put("ruletitle", controlNode.get("ruletitle").asText());
                 singleRuleControl.set("rule", singleRuleArray);
 
                 // Collect each single rule
