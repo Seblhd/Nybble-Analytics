@@ -10,11 +10,6 @@ public class MultipleRulesProcess extends ProcessFunction<ObjectNode, ObjectNode
 
     private ObjectMapper jsonMapper = new ObjectMapper();
 
-    /*@Override
-    public void open (Configuration parameters) throws Exception {
-
-    }*/
-
     @Override
     public void processElement(ObjectNode controlNode, Context context, Collector<ObjectNode> collector) {
 

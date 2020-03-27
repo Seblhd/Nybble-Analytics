@@ -3,6 +3,9 @@
   "map" : {
     "detection" : {
       "Image" : "process.executable"
+    },
+    "fields" : {
+      "Image" : "process.executable"
     }
   }
 }

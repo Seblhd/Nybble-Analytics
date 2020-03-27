@@ -10,16 +10,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class ControlEventMatcher implements FlatMapFunction<Tuple2<ObjectNode, ArrayList<ObjectNode>>, ObjectNode> {
+public class ControlEventMatcher implements FlatMapFunction<Tuple2<ObjectNode, ArrayList<ObjectNode>>, Tuple2<ObjectNode, ObjectNode>> {
 
     private ObjectMapper jsonMapper = new ObjectMapper();
     private String controlRule;
 
     @Override
-    public void flatMap(Tuple2<ObjectNode, ArrayList<ObjectNode>> controlEventTuple, Collector<ObjectNode> collector) {
+    public void flatMap(Tuple2<ObjectNode, ArrayList<ObjectNode>> controlEventTuple, Collector<Tuple2<ObjectNode, ObjectNode>> collector) {
 
         Configuration jsonPathConfig = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL).addOptions(Option.SUPPRESS_EXCEPTIONS);
-
 
         for (ObjectNode controlNode : controlEventTuple.f1) {
             try {
@@ -39,7 +38,7 @@ public class ControlEventMatcher implements FlatMapFunction<Tuple2<ObjectNode, A
                 // @.process.executable == 'C:\\Program Files (x86)\\Notepad++\\updater\\gup.exe'))]");
 
                 if (!eventMatch.isEmpty()) {
-                    collector.collect(controlEventTuple.f0);
+                    collector.collect(Tuple2.of(controlEventTuple.f0, controlNode));
                 }
 
             } catch (Exception e) {

@@ -63,7 +63,8 @@ public class NybbleAnalytics {
 		DataStream<ObjectNode> alertStream = sigmaRuleSourceStream
 				.connect(windowsLogsStream)
 				.flatMap(new LogSourceMatcher())
-				.flatMap(new ControlEventMatcher());
+				.flatMap(new ControlEventMatcher())
+				.flatMap(new AlertCreation());
 		alertStream.print();
 
 		// execute program

@@ -52,6 +52,11 @@ under the License.
 	</repositories>
 
 	<dependencies>
+		<dependency>
+			<groupId>org.elasticsearch</groupId>
+			<artifactId>elasticsearch-core</artifactId>
+			<version>7.6.1</version>
+		</dependency>
 		<!-- Apache Flink dependencies -->
 		<!-- These dependencies are provided, because they should not be packaged into the JAR file. -->
 		<dependency>
