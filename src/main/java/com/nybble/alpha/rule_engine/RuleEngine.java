@@ -139,6 +139,9 @@ public class RuleEngine {
             // Append Sigma rule ID to Control Event.
             controlEvent.put("ruleid", sigmaJsonRule.get("id").asText());
 
+            // Append Sigma Rule Title to Control Event
+            controlEvent.put("ruletitle", sigmaJsonRule.get("title").asText());
+
             // Append final JsonPath rule to Rule Array Node
             ruleNode.put("jsonpathrule", jsonPathRule);
 
@@ -182,6 +185,13 @@ public class RuleEngine {
                 ruleNode.set("logsource", logSourceNode);
             }
 
+            // Append a list containing tags to Control Event
+            if (sigmaJsonRule.has("tags")) {
+                ArrayNode tagsArray = getRuleTags(sigmaJsonRule.get("tags").deepCopy());
+                ruleNode.set("tags", tagsArray);
+            }
+
+            // Append a list containing usefull fields to Control Event
             if (sigmaJsonRule.has("fields")) {
                 ArrayNode fieldsArray = getUsefulFields(sigmaJsonRule.get("id").toString(), sigmaJsonRule.get("fields").deepCopy());
                 ruleNode.set("fields", fieldsArray);
@@ -201,7 +211,27 @@ public class RuleEngine {
 
     }
 
-    private ArrayNode getUsefulFields(String currentRuleId, ArrayNode fieldsNode) throws IOException {
+    private ArrayNode getRuleTags(ArrayNode tagsNode) {
+        // Create an ArrayNode for tags
+        ArrayNode tagsArray = jsonMapper.createArrayNode();
+        if (tagsNode.isArray()) {
+            // Create a temp list for unique value in Fields (In case of multiDoc)
+            List<String> tagsList = new ArrayList<>();
+
+            for (int y = 0; y < tagsNode.size(); y++) {
+                if (!tagsList.contains(tagsNode.get(y).asText())) {
+                    tagsList.add(tagsNode.get(y).asText());
+                }
+            }
+            tagsList.forEach(tagsArray::add);
+        } else {
+            System.out.println("Invalid format for field \"tags\", must be a List in Sigma Rule");
+        }
+
+        return tagsArray;
+    }
+
+    private ArrayNode getUsefulFields(String currentRuleId, ArrayNode fieldsNode) {
         // Create an ArrayNode for mapped useful fields.
         ArrayNode fieldsArray = jsonMapper.createArrayNode();
         if (fieldsNode.isArray()) {
