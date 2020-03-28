@@ -1,18 +1,20 @@
 package com.nybble.alpha.alert_engine;
 
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.Option;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.flink.table.descriptors.Elasticsearch;
 import org.apache.flink.util.Collector;
 import org.elasticsearch.common.UUIDs;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Iterator;
+import java.util.List;
 import java.util.TimeZone;
 
 
@@ -28,7 +30,7 @@ public class AlertCreation implements FlatMapFunction<Tuple2<ObjectNode, ObjectN
     }
 
     @Override
-    public void flatMap(Tuple2<ObjectNode, ObjectNode> controlEventMatch, Collector<ObjectNode> collector) throws Exception {
+    public void flatMap(Tuple2<ObjectNode, ObjectNode> controlEventMatch, Collector<ObjectNode> collector) {
 
         // controlEventMatch.f0 is Event Node
         // controlEventMatch.f1 is ControlNode
@@ -49,16 +51,38 @@ public class AlertCreation implements FlatMapFunction<Tuple2<ObjectNode, ObjectN
         alertNode.put("rule.name", controlEventMatch.f1.get("ruletitle").asText());
 
         //Add Sigma rule tags array
-        if (controlEventMatch.f1.has("tags")) {
-            alertNode.putArray("tags").addAll((ArrayNode) controlEventMatch.f1.get("tags"));
+        if (controlEventMatch.f1.get("rule").get(0).has("tags")) {
+            alertNode.putArray("tags").addAll((ArrayNode) controlEventMatch.f1.get("rule").get(0).get("tags"));
         }
 
         // Add each useful fields if existing
-        if (controlEventMatch.f1.has("fields")) {
-            ArrayNode fieldsArrayNode = ((ArrayNode) controlEventMatch.f1.get("fields"));
+        if (controlEventMatch.f1.get("rule").get(0).has("fields")) {
+            // Put all fields from Control Event in an ArrayNode
+            ArrayNode fieldsArrayNode = ((ArrayNode) controlEventMatch.f1.get("rule").get(0).get("fields"));
+            // Create JsonPath configuration to search value of fields.
+            Configuration jsonPathConfig = Configuration.defaultConfiguration()
+                    .addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL)
+                    .addOptions(Option.ALWAYS_RETURN_LIST)
+                    .addOptions(Option.SUPPRESS_EXCEPTIONS);
+
             fieldsArrayNode.forEach(fields -> {
-                if (hasField(controlEventMatch.f0, fields.asText())) {
-                    alertNode.put(fields.asText() , controlEventMatch.f0.findValue(fields.asText()).asText());
+                try {
+                    // Search if field is in Event Node
+                    List<?> searchFieldValue = JsonPath.using(jsonPathConfig)
+                            .parse(jsonMapper.writeValueAsString(controlEventMatch.f0))
+                            .read("$." + fields.asText());
+
+                    // If field has been found, then searchField value list contain the value.
+                    // Else, because of the "ALWAYS_RETURN_LIST" option, empty list is return when field has not bee found.
+                    if (!searchFieldValue.isEmpty()) {
+                        searchFieldValue.forEach(foundFields -> {
+                            alertNode.put(fields.asText(), foundFields.toString());
+                        });
+                    } else {
+                        System.out.println("Field has not been found in event. Please review Sigma rule and corresponding events.");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             });
         }
@@ -68,30 +92,5 @@ public class AlertCreation implements FlatMapFunction<Tuple2<ObjectNode, ObjectN
 
         // Collect final AlertNode
         collector.collect(alertNode);
-    }
-
-    private boolean hasField(ObjectNode eventNode, String searchField) {
-        // Create a Boolean for existing or not.
-        boolean fieldExists = eventNode.has(searchField);
-
-        if(!fieldExists) {
-            Iterator<String> fieldIterator = eventNode.fieldNames();
-            while(fieldIterator.hasNext()) {
-                String nextField = fieldIterator.next();
-                try {
-                    if (eventNode.get(nextField) instanceof ObjectNode) {
-                        fieldExists = hasField(eventNode.get(nextField).deepCopy(), nextField);
-                    }
-
-                    if (fieldExists) {
-                        break;
-                    }
-                } finally {
-                    System.out.println("End of search. Field has not been found in event. Please review Sigma rule and corresponding events.");
-                }
-            }
-        }
-
-        return fieldExists;
     }
 }

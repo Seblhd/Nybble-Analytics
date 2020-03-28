@@ -5,7 +5,8 @@
       "Image" : "process.executable"
     },
     "fields" : {
-      "Image" : "process.executable"
+      "Image" : "process.executable",
+      "OriginalFileName" : "process.name"
     }
   }
 }
