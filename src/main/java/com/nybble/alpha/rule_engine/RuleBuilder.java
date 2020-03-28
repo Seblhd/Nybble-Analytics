@@ -75,20 +75,25 @@ public class RuleBuilder {
                     // Init counter for OR condition
                     int matchCount = 0;
                     int count = matchCount(nextCondition, selectionMap);
+                    boolean firstEnclose = false;
 
                     for(String key: selectionMap.keySet()) {
 
                         Matcher fieldParser = Pattern.compile(nextCondition.substring(0, nextCondition.length() -1)+".*").matcher(key);
 
-                        while(fieldParser.find()){
+                        while(fieldParser.find()) {
                             if (precededByNot){
-                                jsonPathRule.append("!").append("(");
+                                if (!firstEnclose) {
+                                    jsonPathRule.append("!").append("(");
+                                    firstEnclose = true;
+                                }
                                 listConverter(selectionMap, key);
-                                jsonPathRule.append(")");
                             } else if (!precededByNot){
-                                jsonPathRule.append("(");
+                                if (!firstEnclose) {
+                                    jsonPathRule.append("(");
+                                    firstEnclose = true;
+                                }
                                 listConverter(selectionMap, key);
-                                jsonPathRule.append(")");
                             }
                             if(matchCount < count - 1) {
                                 jsonPathRule.append(" || ");
@@ -96,6 +101,7 @@ public class RuleBuilder {
                             matchCount++;
                         }
                     }
+                    jsonPathRule.append(")");
                 } else {
                     if (precededByNot){
                         for(String selectValue : selectionMap.get(nextCondition)) {
@@ -124,27 +130,33 @@ public class RuleBuilder {
                     // Init counter for AND condition
                     int matchCount = 0;
                     int count = matchCount(nextCondition, selectionMap);
+                    boolean firstEnclose = false;
 
                     for(String key: selectionMap.keySet()) {
 
                         Matcher fieldParser = Pattern.compile(nextCondition.substring(0, nextCondition.length() -1)+".*").matcher(key);
 
-                        while(fieldParser.find()){
+                        while(fieldParser.find()) {
                             if (precededByNot){
-                                jsonPathRule.append("!").append("(");
+                                if (!firstEnclose) {
+                                    jsonPathRule.append("!").append("(");
+                                    firstEnclose = true;
+                                }
                                 listConverter(selectionMap, key);
-                                jsonPathRule.append(")");
                             } else if (!precededByNot){
-                                jsonPathRule.append("(");
+                                if (!firstEnclose) {
+                                    jsonPathRule.append("(");
+                                    firstEnclose = true;
+                                }
                                 listConverter(selectionMap, key);
-                                jsonPathRule.append(")");
                             }
                             if(matchCount < count - 1) {
-                                jsonPathRule.append(" && ");
+                                jsonPathRule.append(" || ");
                             }
                             matchCount++;
                         }
                     }
+                    jsonPathRule.append(")");
                 } else {
                     if (precededByNot){
                         for(String selectValue : selectionMap.get(nextCondition)) {

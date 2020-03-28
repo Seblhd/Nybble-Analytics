@@ -18,7 +18,7 @@ public class ControlEventMatcher implements FlatMapFunction<Tuple2<ObjectNode, A
     @Override
     public void flatMap(Tuple2<ObjectNode, ArrayList<ObjectNode>> controlEventTuple, Collector<Tuple2<ObjectNode, ObjectNode>> collector) {
 
-        Configuration jsonPathConfig = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL).addOptions(Option.SUPPRESS_EXCEPTIONS);
+        Configuration jsonPathConfig = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL).addOptions(Option.ALWAYS_RETURN_LIST).addOptions(Option.SUPPRESS_EXCEPTIONS);
 
         for (ObjectNode controlNode : controlEventTuple.f1) {
             try {
@@ -31,11 +31,7 @@ public class ControlEventMatcher implements FlatMapFunction<Tuple2<ObjectNode, A
                         .read(controlRule);
 
                 // Rule debug line
-                //List<ObjectNode> eventMatch = JsonPath.read(controlEventTuple.f0.toString(), "$[?(@.process.executable =~ /^.*\\GUP\\.exe/ &&
-                // !(@.process.executable =~ /C:\\Users\\\\.*\\AppData\\Local\\Notepad\\+\\+\\updater\\gup\\.exe/ ||
-                // @.process.executable =~ /C:\\Users\\\\.*\\AppData\\Roaming\\Notepad\\+\\+\\updater\\gup\\.exe/ ||
-                // @.process.executable == 'C:\\Program Files\\Notepad++\\updater\\gup.exe' ||
-                // @.process.executable == 'C:\\Program Files (x86)\\Notepad++\\updater\\gup.exe'))]");
+                //List<Map<String, ObjectNode>> eventMatch = JsonPath.read(controlEventTuple.f0.toString(), "$[?(@.event.code == 4738 && !((@.winlog.event_data.AllowedToDelegateTo == null || @.winlog.event_data.AllowedToDelegateTo == '-')))]");
 
                 if (!eventMatch.isEmpty()) {
                     collector.collect(Tuple2.of(controlEventTuple.f0, controlNode));
