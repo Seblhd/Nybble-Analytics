@@ -64,6 +64,7 @@ public class NybbleAnalytics {
 				.connect(windowsLogsStream)
 				.flatMap(new LogSourceMatcher())
 				.flatMap(new ControlEventMatcher())
+				.flatMap(new MatchAggregation())
 				.flatMap(new AlertCreation());
 		alertStream.print();
 
