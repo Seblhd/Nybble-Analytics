@@ -4,7 +4,7 @@
     "detection" : {
       "EventID" : "event.code",
       "UserName" : "winlog.event_data.TargetUserName",
-      "Workstation" : "winlog.event_data.Workstation"
+      "Workstation" : "winlog.computer_name"
     }
   }
 }

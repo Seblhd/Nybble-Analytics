@@ -67,9 +67,10 @@ public class MatchAggregation implements FlatMapFunction<Tuple2<ObjectNode, Obje
                     System.out.println("Field by group count node is : " + fieldByGroupCountNode);
 
                 } else {
-                    System.out.println("\"aggfield\" : \"" + aggregationNode.get("aggfield").asText() +
-                            "\" or \"group-field\" : \"" + aggregationNode.get("groupfield").asText() +
-                            "\" has not been found in event. Please check rule and corresponding events.");
+                    System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() +
+                            "\" or \"group-field\":\"" + aggregationNode.get("groupfield").asText() +
+                            "\" has not been found in event. Please check rule with id : " +
+                            controlEventMatch.f1.get("ruleid").asText() + " and corresponding events.");
                 }
 
             } else if (aggregationNode.has("aggfield") && !aggregationNode.has("groupfield")) {
@@ -90,8 +91,9 @@ public class MatchAggregation implements FlatMapFunction<Tuple2<ObjectNode, Obje
                     System.out.println("Field  count node is : " + fieldCountNode);
 
                 } else {
-                    System.out.println("\"aggfield\" : \"" + aggregationNode.get("aggfield").asText() +
-                            "\" has not been found in event. Please check rule and corresponding events.");
+                    System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() +
+                            "\" has not been found in event. Please check rule with id : " +
+                            controlEventMatch.f1.get("ruleid").asText() + " and corresponding events.");
                 }
 
             } else if (!aggregationNode.has("aggfield") && !aggregationNode.has("groupfield")) {
