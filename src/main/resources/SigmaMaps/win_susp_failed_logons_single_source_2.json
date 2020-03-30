@@ -3,8 +3,7 @@
   "map" : {
     "detection" : {
       "EventID" : "event.code",
-      "UserName" : "user.name",
-      "WorkstationName" : "source.domain",
+      "UserName" : "winlog.event_data.TargetUserName",
       "Workstation" : "winlog.event_data.Workstation"
     }
   }
