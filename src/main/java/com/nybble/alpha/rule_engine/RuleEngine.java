@@ -106,7 +106,7 @@ public class RuleEngine {
 
                 if (sigmaDetectionFieldMap.getKey().equals("condition")) {
 
-                    conditionNode = new ConditionConverter().conditionConvert(sigmaDetectionFieldMap.getValue());
+                    conditionNode = new ConditionConverter(currentRuleId).conditionConvert(sigmaDetectionFieldMap.getValue());
                 }
             }
         }
@@ -148,7 +148,7 @@ public class RuleEngine {
 
             // Append timeframe to Rule Array Node even if timefram is null
             if (sigmaJsonRule.get("detection").has("timeframe")) {
-                ObjectNode timeframNode = new ConditionConverter().timeframeConvert(sigmaJsonRule.get("detection").get("timeframe").asText());
+                ObjectNode timeframNode = new ConditionConverter(currentRuleId).timeframeConvert(sigmaJsonRule.get("detection").get("timeframe").asText());
                 ruleNode.set("timeframe", timeframNode);
             } else if (!sigmaJsonRule.get("detection").has("timeframe")) {
                 String nullString = null;

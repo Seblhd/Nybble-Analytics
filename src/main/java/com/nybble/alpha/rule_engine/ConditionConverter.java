@@ -15,9 +15,11 @@ import java.util.regex.Pattern;
 public class ConditionConverter {
 
     private static ObjectMapper jsonMapper = new ObjectMapper();
-    private ObjectNode sigmaFieldMapping = jsonMapper.readValue(new File("./src/main/resources/sigma_ECS_fields_map.json"), ObjectNode.class);
+    private ObjectNode aggMappingNode;
 
-    public ConditionConverter() throws IOException {
+    public ConditionConverter(String currrentRuleID) throws IOException {
+        // Get MappingNode for current rule to map fields in aggregation if exists.
+        aggMappingNode = new SelectionConverter().getFieldsMappingMap(currrentRuleID);
     }
 
     public ObjectNode conditionConvert(JsonNode conditions) {
@@ -108,7 +110,9 @@ public class ConditionConverter {
 
             // Map aggregation field if not empty
             if (!aggregationParser.group("aggfield").isEmpty()) {
+                System.out.println("Agg field before mapping is : " + aggregationParser.group("aggfield"));
                 String aggFieldMapping = fieldMapping(aggregationParser.group("aggfield"));
+                System.out.println("Agg field after mapping is " + aggFieldMapping);
                 aggregationNode.put("aggfield", aggFieldMapping);
             } else {
                 aggregationNode.put("aggfield", aggregationParser.group("aggfield"));
@@ -116,7 +120,9 @@ public class ConditionConverter {
 
             // Map group field if not empty
             if (!aggregationParser.group("groupfield").isEmpty()) {
+                System.out.println("Group field before mapping is : " + aggregationParser.group("groupfield"));
                 String groupFieldMapping = fieldMapping(aggregationParser.group("groupfield"));
+                System.out.println("Group field after mapping is " + groupFieldMapping);
                 aggregationNode.put("groupfield", groupFieldMapping);
             } else {
                 aggregationNode.put("groupfield", aggregationParser.group("groupfield"));
@@ -145,7 +151,7 @@ public class ConditionConverter {
 
     private String fieldMapping (String selectionKey) {
         try {
-            selectionKey = sigmaFieldMapping.get("map").get(selectionKey).asText();
+            selectionKey = aggMappingNode.get("map").get("detection").get(selectionKey).asText();
         } catch (Exception e) {
             System.out.println("No corresponding field found in Mapping file for \"" + selectionKey + "\"");
         }
