@@ -110,9 +110,7 @@ public class ConditionConverter {
 
             // Map aggregation field if not empty
             if (!aggregationParser.group("aggfield").isEmpty()) {
-                System.out.println("Agg field before mapping is : " + aggregationParser.group("aggfield"));
                 String aggFieldMapping = fieldMapping(aggregationParser.group("aggfield"));
-                System.out.println("Agg field after mapping is " + aggFieldMapping);
                 aggregationNode.put("aggfield", aggFieldMapping);
             } else {
                 aggregationNode.put("aggfield", aggregationParser.group("aggfield"));
@@ -120,9 +118,7 @@ public class ConditionConverter {
 
             // Map group field if not empty
             if (!aggregationParser.group("groupfield").isEmpty()) {
-                System.out.println("Group field before mapping is : " + aggregationParser.group("groupfield"));
                 String groupFieldMapping = fieldMapping(aggregationParser.group("groupfield"));
-                System.out.println("Group field after mapping is " + groupFieldMapping);
                 aggregationNode.put("groupfield", groupFieldMapping);
             } else {
                 aggregationNode.put("groupfield", aggregationParser.group("groupfield"));
