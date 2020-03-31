@@ -5,7 +5,6 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMap
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,7 +64,7 @@ public class ConditionConverter {
         ObjectNode conditionBuilderNode = jsonMapper.createObjectNode();
 
         // Split search and aggregation expression
-        Integer conditionLength = condition.split(" \\| |\\|").length;
+        int conditionLength = condition.split(" \\| |\\|").length;
         String searchExpression = condition.split(" \\| |\\|")[0];
 
         // Aggregation Expression to support with Dynamic stream creation
@@ -165,22 +164,27 @@ public class ConditionConverter {
 
     private Long convertToSecond (Long duration, String unit) {
 
-        Long seconds = 0L;
+        long seconds = 0L;
 
-        if (unit.equals("m")) {
-            seconds = TimeUnit.MINUTES.toSeconds(duration);
-        } else if (unit.equals("h")) {
-            seconds = TimeUnit.HOURS.toSeconds(duration);
-        } else if (unit.equals("d")) {
-            seconds = TimeUnit.DAYS.toSeconds(duration);
-        } else if (unit.equals("M")) {
-            // Average
-            seconds = TimeUnit.DAYS.toSeconds(duration) * 30;
-        } else if (unit.equals("y")) {
-            // Standard year
-            seconds = TimeUnit.DAYS.toSeconds(duration) * 365;
+        switch (unit) {
+            case "m":
+                seconds = TimeUnit.MINUTES.toSeconds(duration);
+                break;
+            case "h":
+                seconds = TimeUnit.HOURS.toSeconds(duration);
+                break;
+            case "d":
+                seconds = TimeUnit.DAYS.toSeconds(duration);
+                break;
+            case "M":
+                // Average
+                seconds = TimeUnit.DAYS.toSeconds(duration) * 30;
+                break;
+            case "y":
+                // Standard year
+                seconds = TimeUnit.DAYS.toSeconds(duration) * 365;
+                break;
         }
-
         return seconds;
     }
 }
