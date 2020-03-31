@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 public class MatchAggregation implements FlatMapFunction<Tuple2<ObjectNode, ObjectNode>, Tuple2<ObjectNode, ObjectNode>> {
 
@@ -73,16 +74,39 @@ public class MatchAggregation implements FlatMapFunction<Tuple2<ObjectNode, Obje
                     fieldByGroupCountNode.put("aggfield", aggfield);
                     fieldByGroupCountNode.put("groupfield", groupfield);
 
-                    System.out.println("Field by group count node is : " + fieldByGroupCountNode);
-
                     // If key already exists in fieldByGroupCountMap
                     if (fieldByGroupCountMap.containsKey(fieldByGroupCountNode)) {
+
+                        // Get event.created Date of current event.
+                        Date currentEventDate = df.parse(controlEventMatch.f0.get("event").get("created").asText());
+                        // Get event.created date of 1st event added in Map.
+                        Date firstEventDate = fieldByGroupCountMap.get(fieldByGroupCountNode).f0;
+
+                        // Get the number of seconds between firstEvent in Map and Current event time.
+                        long timeGapSec = TimeUnit.MILLISECONDS.toSeconds(currentEventDate.getTime() - firstEventDate.getTime());
+
                         // Check if events is still in aggregation Timeframe.
-                        // If still in Timeframe then increment count by one and then check operator and value number.
-                        System.out.println("Timeframe is : " + controlEventMatch.f1.get("rule").get(0).get("timeframe"));
+                        // If Time gap is inferior to Timefram, then increment count by one and then check operator and value number.
+                        // Else, delete entry in Map for this aggregation
+                        if (timeGapSec < controlEventMatch.f1.get("rule").get(0).get("timeframe").get("duration").asLong()) {
 
+                            // Increment the number of match event
+                            fieldByGroupCountMap.get(fieldByGroupCountNode).f1 = fieldByGroupCountMap.get(fieldByGroupCountNode).f1+=1;
 
-                        // Else if not in Timeframe then delete entry in Map for aggregation.
+                            //Check if aggregation condition has been met.
+                            boolean conditionFlag = checkAggregationCondition(aggregationNode.get("aggoperator").asText(),
+                                    fieldByGroupCountMap.get(fieldByGroupCountNode).f1,
+                                    aggregationNode.get("aggvalue").asLong());
+
+                            // If still in Time gap and aggregation condition is met, collect event to create alert and remove entry in Map
+                            if (conditionFlag) {
+                                collector.collect(Tuple2.of(controlEventMatch.f0, controlEventMatch.f1));
+                                fieldByGroupCountMap.remove(fieldByGroupCountNode);
+                            }
+
+                        } else {
+                            fieldByGroupCountMap.remove(fieldByGroupCountNode);
+                        }
                     } else {
                         // Else, create Tuple2 with 1st event.created timestamp and count with value to 1.
                         Tuple2<Date, Long> aggregationTuple = new Tuple2<>();
@@ -91,8 +115,6 @@ public class MatchAggregation implements FlatMapFunction<Tuple2<ObjectNode, Obje
 
                         // Then create a new entry in HashMap with fieldByGroupCountNode as Key and aggregationTuple as value.
                         fieldByGroupCountMap.put(fieldByGroupCountNode, aggregationTuple);
-
-                        System.out.println("Field by group count map is : " + fieldByGroupCountMap);
                     }
 
                 } else {
@@ -160,5 +182,39 @@ public class MatchAggregation implements FlatMapFunction<Tuple2<ObjectNode, Obje
                 }
             }
         }
+    }
+
+    private Boolean checkAggregationCondition(String aggregatorOperator, Long currentMapCount , Long aggregatorValue) {
+
+        // Following each aggregation operator check aggregation value.
+        switch (aggregatorOperator) {
+            case ">":
+                if (currentMapCount > aggregatorValue) {
+                    return true;
+                }
+                break;
+            case ">=":
+                if (currentMapCount >= aggregatorValue) {
+                    return true;
+                }
+                break;
+            case "<":
+                if (currentMapCount < aggregatorValue) {
+                    return true;
+                }
+                break;
+            case "<=":
+                if (currentMapCount <= aggregatorValue) {
+                    return true;
+                }
+                break;
+            case "=":
+                if (currentMapCount.equals(aggregatorValue)) {
+                    return true;
+                }
+                break;
+        }
+
+        return false;
     }
 }
