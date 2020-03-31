@@ -75,8 +75,14 @@ public class MatchAggregation implements FlatMapFunction<Tuple2<ObjectNode, Obje
 
                     System.out.println("Field by group count node is : " + fieldByGroupCountNode);
 
+                    // If key already exists in fieldByGroupCountMap
                     if (fieldByGroupCountMap.containsKey(fieldByGroupCountNode)) {
+                        // Check if events is still in aggregation Timeframe.
+                        // If still in Timeframe then increment count by one and then check operator and value number.
+                        System.out.println("Timeframe is : " + controlEventMatch.f1.get("rule").get(0).get("timeframe"));
 
+
+                        // Else if not in Timeframe then delete entry in Map for aggregation.
                     } else {
                         // Else, create Tuple2 with 1st event.created timestamp and count with value to 1.
                         Tuple2<Date, Long> aggregationTuple = new Tuple2<>();

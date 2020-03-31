@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -135,11 +136,18 @@ public class ConditionConverter {
 
         ObjectNode timeframeNode = jsonMapper.createObjectNode();
 
-        Matcher timeframeParser = Pattern.compile("(?<duration>\\d*)(?<unit>S|s|m|h|d|M|y)").matcher(timeframe);
+        Matcher timeframeParser = Pattern.compile("(?<duration>\\d*)(?<unit>s|m|h|d|M|y)").matcher(timeframe);
 
         while(timeframeParser.find()) {
-            timeframeNode.put("duration", timeframeParser.group("duration"));
-            timeframeNode.put("unit", timeframeParser.group("unit"));
+            if (timeframeParser.group("unit").equals("s")) {
+                timeframeNode.put("duration", Long.parseLong(timeframeParser.group("duration")));
+                timeframeNode.put("unit", timeframeParser.group("unit"));
+            } else {
+                long duration = convertToSecond(Long.parseLong(timeframeParser.group("duration")), timeframeParser.group("unit"));
+                timeframeNode.put("duration", duration);
+                timeframeNode.put("unit", "s");
+            }
+
         }
 
         return timeframeNode;
@@ -153,6 +161,27 @@ public class ConditionConverter {
         }
 
         return selectionKey;
+    }
+
+    private Long convertToSecond (Long duration, String unit) {
+
+        Long seconds = 0L;
+
+        if (unit.equals("m")) {
+            seconds = TimeUnit.MINUTES.toSeconds(duration);
+        } else if (unit.equals("h")) {
+            seconds = TimeUnit.HOURS.toSeconds(duration);
+        } else if (unit.equals("d")) {
+            seconds = TimeUnit.DAYS.toSeconds(duration);
+        } else if (unit.equals("M")) {
+            // Average
+            seconds = TimeUnit.DAYS.toSeconds(duration) * 30;
+        } else if (unit.equals("y")) {
+            // Standard year
+            seconds = TimeUnit.DAYS.toSeconds(duration) * 365;
+        }
+
+        return seconds;
     }
 }
 
