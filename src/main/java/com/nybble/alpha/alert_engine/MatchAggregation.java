@@ -9,15 +9,26 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMap
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.flink.util.Collector;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.TimeZone;
 
 public class MatchAggregation implements FlatMapFunction<Tuple2<ObjectNode, ObjectNode>, Tuple2<ObjectNode, ObjectNode>> {
 
-    private HashMap<ObjectNode, Tuple2<Date, Integer>> globalCountMap;
-    private HashMap<ObjectNode, Tuple2<Date, Integer>> fieldCountMap;
-    private HashMap<ObjectNode, Tuple2<Date, Integer>> fieldByGroupCountMap;
+    private HashMap<ObjectNode, Tuple2<Date, Long>> globalCountMap = new HashMap<>();
+    private HashMap<ObjectNode, Tuple2<Date, Long>> fieldCountMap = new HashMap<>();
+    private HashMap<ObjectNode, Tuple2<Date, Long>> fieldByGroupCountMap = new HashMap<>();
     private ObjectMapper jsonMapper = new ObjectMapper();
+    private static TimeZone tz = TimeZone.getTimeZone("UTC");
+    private static DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
+    public MatchAggregation() {
+        // Set timezone for alert creation timestamp
+        df.setTimeZone(tz);
+    }
 
     @Override
     public void flatMap(Tuple2<ObjectNode, ObjectNode> controlEventMatch, Collector<Tuple2<ObjectNode, ObjectNode>> collector) throws Exception {
@@ -41,8 +52,6 @@ public class MatchAggregation implements FlatMapFunction<Tuple2<ObjectNode, Obje
             // Get aggregation node from rule
             ObjectNode aggregationNode = controlEventMatch.f1.get("rule").get(0).get("aggregation").deepCopy();
 
-            System.out.println("Aggregation node is : " + aggregationNode.toString());
-
             if (aggregationNode.has("aggfield") && aggregationNode.has("groupfield")) {
 
                 // Create fieldByGroupCountNode
@@ -51,12 +60,12 @@ public class MatchAggregation implements FlatMapFunction<Tuple2<ObjectNode, Obje
                 // Get value of aggfield from EventNode
                 String aggfield = JsonPath.using(jsonPathConfig)
                         .parse(jsonMapper.writeValueAsString(controlEventMatch.f0))
-                        .read("$." + aggregationNode.get("aggfield"));
+                        .read("$." + aggregationNode.get("aggfield").asText());
 
                 // Get value of groupfield from EventNode
                 String groupfield = JsonPath.using(jsonPathConfig)
                         .parse(jsonMapper.writeValueAsString(controlEventMatch.f0))
-                        .read("$." + aggregationNode.get("groupfield"));
+                        .read("$." + aggregationNode.get("groupfield").asText());
 
                 if (aggfield != null && groupfield != null) {
                     // Add values in fieldByGroupCountNode. This Node is the fieldByGroupCountMap HashMap key.
@@ -65,6 +74,20 @@ public class MatchAggregation implements FlatMapFunction<Tuple2<ObjectNode, Obje
                     fieldByGroupCountNode.put("groupfield", groupfield);
 
                     System.out.println("Field by group count node is : " + fieldByGroupCountNode);
+
+                    if (fieldByGroupCountMap.containsKey(fieldByGroupCountNode)) {
+
+                    } else {
+                        // Else, create Tuple2 with 1st event.created timestamp and count with value to 1.
+                        Tuple2<Date, Long> aggregationTuple = new Tuple2<>();
+                        aggregationTuple.f0 = df.parse(controlEventMatch.f0.get("event").get("created").asText());
+                        aggregationTuple.f1 = 1L;
+
+                        // Then create a new entry in HashMap with fieldByGroupCountNode as Key and aggregationTuple as value.
+                        fieldByGroupCountMap.put(fieldByGroupCountNode, aggregationTuple);
+
+                        System.out.println("Field by group count map is : " + fieldByGroupCountMap);
+                    }
 
                 } else {
                     System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() +
@@ -81,14 +104,26 @@ public class MatchAggregation implements FlatMapFunction<Tuple2<ObjectNode, Obje
                 // Get value of aggfield from EventNode
                 String aggfield = JsonPath.using(jsonPathConfig)
                         .parse(jsonMapper.writeValueAsString(controlEventMatch.f0))
-                        .read("$." + aggregationNode.get("aggfield"));
+                        .read("$." + aggregationNode.get("aggfield").asText());
 
                 if (aggfield != null) {
                     // Add values in fieldCountNode. This Node is the fieldCountMap HashMap key.
                     fieldCountNode.put("ruleid", controlEventMatch.f1.get("ruleid").asText());
                     fieldCountNode.put("aggfield", aggfield);
 
-                    System.out.println("Field  count node is : " + fieldCountNode);
+                    System.out.println("Field count node is : " + fieldCountNode);
+
+                    if (fieldCountMap.containsKey(fieldCountNode)) {
+
+                    } else {
+                        // Else, create Tuple2 with 1st event.created timestamp and count with value to 1.
+                        Tuple2<Date, Long> aggregationTuple = new Tuple2<>();
+                        aggregationTuple.f0 = df.parse(controlEventMatch.f0.get("event").get("created").asText());
+                        aggregationTuple.f1 = 1L;
+
+                        // Then create a new entry in HashMap with fieldCountNode as Key and aggregationTuple as value.
+                        fieldCountMap.put(fieldCountNode, aggregationTuple);
+                    }
 
                 } else {
                     System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() +
@@ -105,6 +140,18 @@ public class MatchAggregation implements FlatMapFunction<Tuple2<ObjectNode, Obje
                 globalCountNode.put("ruleid", controlEventMatch.f1.get("ruleid").asText());
 
                 System.out.println("Global count node is : " + globalCountNode);
+
+                if (globalCountMap.containsKey(globalCountNode)) {
+
+                } else {
+                    // Else, create Tuple2 with 1st event.created timestamp and count with value to 1.
+                    Tuple2<Date, Long> aggregationTuple = new Tuple2<>();
+                    aggregationTuple.f0 = df.parse(controlEventMatch.f0.get("event").get("created").asText());
+                    aggregationTuple.f1 = 1L;
+
+                    // Then create a new entry in HashMap with globalCountNode as Key and aggregationTuple as value.
+                    globalCountMap.put(globalCountNode, aggregationTuple);
+                }
             }
         }
     }
