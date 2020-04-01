@@ -74,8 +74,31 @@ public class NybbleAnalytics {
 			}
 		});
 
+		// Create a ElasticSearch sink where index is "events" to store events from Kafka.
+		ElasticsearchSink.Builder<String> esSinkAlertBuilder = new ElasticsearchSink.Builder<>(httpHosts, new ElasticsearchSinkFunction<String>() {
+			public IndexRequest createIndexRequest(String element) throws IOException {
+				ObjectMapper mapper = new ObjectMapper();
+				HashMap alertNode = mapper.readValue(element, HashMap.class);
+
+				return Requests.indexRequest()
+						.index("alert-"+ alertNode.get("rule.status").toString() + "-" + esIndexFormat.format(new Date()))
+						.id(alertNode.get("alert.uid").toString())
+						.source(alertNode);
+			}
+
+			@Override
+			public void process(String element, RuntimeContext ctx, RequestIndexer indexer) {
+				try {
+					indexer.add(createIndexRequest(element));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+
 		// Configuration for the bulk requests; this instructs the sink to emit after every element, otherwise they would be buffered
 		esSinkDataBuilder.setBulkFlushMaxActions(1);
+		esSinkAlertBuilder.setBulkFlushMaxActions(1);
 
 		// Create Control Event (Sigma converted rules) Stream
 		DataStream<ObjectNode> sigmaRuleSourceStream = env.addSource(new SigmaSourceFunction())
@@ -112,7 +135,10 @@ public class NybbleAnalytics {
 				.flatMap(new ControlEventMatcher())
 				.flatMap(new MatchAggregation())
 				.flatMap(new AlertCreation());
-		alertStream.print();
+		//alertStream.print();
+
+		// Send alerts to Elasticsearch
+		alertStream.map(Objects::toString).addSink(esSinkAlertBuilder.build());
 
 		// execute program
 		env.execute("Flink Nybble Analytics SIEM");

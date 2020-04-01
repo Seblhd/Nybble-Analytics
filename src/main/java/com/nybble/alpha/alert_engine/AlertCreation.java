@@ -50,6 +50,8 @@ public class AlertCreation implements FlatMapFunction<Tuple2<ObjectNode, ObjectN
         // Add Sigma rule title
         alertNode.put("rule.name", controlEventMatch.f1.get("ruletitle").asText());
 
+        alertNode.put("rule.status", controlEventMatch.f1.get("rulestatus").asText());
+
         //Add Sigma rule tags array
         if (controlEventMatch.f1.get("rule").get(0).has("tags")) {
             alertNode.putArray("tags").addAll((ArrayNode) controlEventMatch.f1.get("rule").get(0).get("tags"));
