@@ -103,7 +103,6 @@ public class CountFunction {
                     // Then create a new entry in HashMap with fieldByGroupCountNode as Key and aggregationTuple as value.
                     fieldByGroupCountMap.put(fieldByGroupCountNode, aggregationTuple);
                 }
-
             } else {
                 System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() +
                         "\" or \"group-field\":\"" + aggregationNode.get("groupfield").asText() +
@@ -126,10 +125,37 @@ public class CountFunction {
                 fieldCountNode.put("ruleid", controlEventMatch.f1.get("ruleid").asText());
                 fieldCountNode.put("aggfield", aggfield);
 
-                System.out.println("Field count node is : " + fieldCountNode);
-
                 if (fieldCountMap.containsKey(fieldCountNode)) {
 
+                    // Get event.created Date of current event.
+                    Date currentEventDate = df.parse(controlEventMatch.f0.get("event").get("created").asText());
+                    // Get event.created date of 1st event added in Map.
+                    Date firstEventDate = fieldCountMap.get(fieldCountNode).f0;
+
+                    // Get the number of seconds between firstEvent in Map and Current event time.
+                    long timeGapSec = TimeUnit.MILLISECONDS.toSeconds(currentEventDate.getTime() - firstEventDate.getTime());
+
+                    // Check if events is still in aggregation Timeframe.
+                    // If Time gap is inferior to Timefram, then increment count by one and then check operator and value number.
+                    // Else, delete entry in Map for this aggregation
+                    if (timeGapSec < controlEventMatch.f1.get("rule").get(0).get("timeframe").get("duration").asLong()) {
+
+                        // Increment the number of match event
+                        fieldCountMap.get(fieldCountNode).f1 = fieldCountMap.get(fieldCountNode).f1+=1;
+
+                        //Check if aggregation condition has been met.
+                        boolean conditionFlag = checkAggregationCondition(aggregationNode.get("aggoperator").asText(),
+                                fieldCountMap.get(fieldCountNode).f1,
+                                aggregationNode.get("aggvalue").asLong());
+
+                        // If still in Time gap and aggregation condition is met, collect event to create alert and remove entry in Map
+                        if (conditionFlag) {
+                            collectEvent = true;
+                            fieldCountMap.remove(fieldCountNode);
+                        }
+                    } else {
+                        fieldCountMap.remove(fieldCountNode);
+                    }
                 } else {
                     // Else, create Tuple2 with 1st event.created timestamp and count with value to 1.
                     Tuple2<Date, Long> aggregationTuple = new Tuple2<>();
@@ -154,10 +180,37 @@ public class CountFunction {
             // Add values in globalCountNode. This Node is the globalCountMap HashMap key.
             globalCountNode.put("ruleid", controlEventMatch.f1.get("ruleid").asText());
 
-            System.out.println("Global count node is : " + globalCountNode);
-
             if (globalCountMap.containsKey(globalCountNode)) {
 
+                // Get event.created Date of current event.
+                Date currentEventDate = df.parse(controlEventMatch.f0.get("event").get("created").asText());
+                // Get event.created date of 1st event added in Map.
+                Date firstEventDate = globalCountMap.get(globalCountNode).f0;
+
+                // Get the number of seconds between firstEvent in Map and Current event time.
+                long timeGapSec = TimeUnit.MILLISECONDS.toSeconds(currentEventDate.getTime() - firstEventDate.getTime());
+
+                // Check if events is still in aggregation Timeframe.
+                // If Time gap is inferior to Timefram, then increment count by one and then check operator and value number.
+                // Else, delete entry in Map for this aggregation
+                if (timeGapSec < controlEventMatch.f1.get("rule").get(0).get("timeframe").get("duration").asLong()) {
+
+                    // Increment the number of match event
+                    globalCountMap.get(globalCountNode).f1 = globalCountMap.get(globalCountNode).f1+=1;
+
+                    //Check if aggregation condition has been met.
+                    boolean conditionFlag = checkAggregationCondition(aggregationNode.get("aggoperator").asText(),
+                            globalCountMap.get(globalCountNode).f1,
+                            aggregationNode.get("aggvalue").asLong());
+
+                    // If still in Time gap and aggregation condition is met, collect event to create alert and remove entry in Map
+                    if (conditionFlag) {
+                        collectEvent = true;
+                        globalCountMap.remove(globalCountNode);
+                    }
+                } else {
+                    globalCountMap.remove(globalCountNode);
+                }
             } else {
                 // Else, create Tuple2 with 1st event.created timestamp and count with value to 1.
                 Tuple2<Date, Long> aggregationTuple = new Tuple2<>();
