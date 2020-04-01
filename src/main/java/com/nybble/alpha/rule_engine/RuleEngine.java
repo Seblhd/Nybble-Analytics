@@ -135,6 +135,14 @@ public class RuleEngine {
             // Append Sigma Rule Title to Control Event
             controlEvent.put("ruletitle", sigmaJsonRule.get("title").asText());
 
+            // Append Sigma Rule Status to Control Event for ES Index.
+            // If Sigma Rule doesn't have "Status" field, then set status to "experimental" to avoid noise in production index.
+            if (sigmaJsonRule.has("rulestatus")) {
+                controlEvent.put("rulestatus", sigmaJsonRule.get("status").asText());
+            } else {
+                controlEvent.put("rulestatus", "experimental");
+            }
+
             // Append final JsonPath rule to Rule Array Node
             ruleNode.put("jsonpathrule", jsonPathRule);
 

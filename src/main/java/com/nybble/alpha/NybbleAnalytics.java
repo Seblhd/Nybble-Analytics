@@ -26,13 +26,14 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.Requests;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Properties;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 
 public class NybbleAnalytics {
+
+	private static DateFormat esIndexFormat = new SimpleDateFormat("yyyy-MM-dd");
 
 	public static void main(String[] args) throws Exception {
 		// set up the streaming execution environment
@@ -59,7 +60,7 @@ public class NybbleAnalytics {
 				HashMap eventNode = mapper.readValue(element, HashMap.class);
 
 				return Requests.indexRequest()
-						.index("events")
+						.index("events-" + esIndexFormat.format(new Date()))
 						.source(eventNode);
 			}
 

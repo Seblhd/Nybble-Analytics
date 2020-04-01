@@ -23,6 +23,7 @@ public class MultipleRulesProcess extends ProcessFunction<ObjectNode, ObjectNode
                 singleRuleArray.add(controlNode.get("rule").get(x));
                 singleRuleControl.put("ruleid", controlNode.get("ruleid").asText());
                 singleRuleControl.put("ruletitle", controlNode.get("ruletitle").asText());
+                singleRuleControl.put("rulestatus", controlNode.get("rulestatus").asText());
                 singleRuleControl.set("rule", singleRuleArray);
 
                 // Collect each single rule
