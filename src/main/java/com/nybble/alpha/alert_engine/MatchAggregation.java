@@ -2,10 +2,10 @@ package com.nybble.alpha.alert_engine;
 
 import com.nybble.alpha.alert_engine.aggregation_functions.CountFunction;
 import com.nybble.alpha.alert_engine.aggregation_functions.MaxFunction;
+import com.nybble.alpha.alert_engine.aggregation_functions.MinFunction;
 import com.nybble.alpha.alert_engine.aggregation_functions.UniqueCountFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.flink.util.Collector;
 
@@ -43,7 +43,7 @@ public class MatchAggregation implements FlatMapFunction<Tuple2<ObjectNode, Obje
                     collector.collect(Tuple2.of(controlEventMatch.f0, controlEventMatch.f1));
                 }
             } else if (controlEventMatch.f1.get("rule").get(0).get("aggregation").get("aggfunction").asText().equals("min")) {
-                boolean minAgg = new MaxFunction().highestValue(controlEventMatch);
+                boolean minAgg = new MinFunction().lowestValue(controlEventMatch);
 
                 if (minAgg) {
                     collector.collect(Tuple2.of(controlEventMatch.f0, controlEventMatch.f1));
