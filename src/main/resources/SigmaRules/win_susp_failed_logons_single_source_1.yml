@@ -18,7 +18,7 @@ detection:
         WorkstationName: '*'
     timeframe: 24h 
     condition:
-        - selection1 | count(UserName) by WorkstationName > 3
+        - selection1 | uniquecount(UserName) by WorkstationName > 3
 falsepositives:
     - Terminal servers
     - Jump servers

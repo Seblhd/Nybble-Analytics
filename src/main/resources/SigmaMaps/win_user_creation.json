@@ -6,8 +6,8 @@
     },
     "fields" : {
       "EventCode" : "event.code",
-      "AccountName" : "winlog.event_data.AccountName",
-      "AccountDomain" : "user.domain"
+      "AccountName" : "winlog.event_data.TargetUserName",
+      "AccountDomain" : "winlog.event_data.TargetDomainName"
     }
   }
 }

@@ -1,6 +1,7 @@
 package com.nybble.alpha.alert_engine;
 
 import com.nybble.alpha.alert_engine.aggregation_functions.CountFunction;
+import com.nybble.alpha.alert_engine.aggregation_functions.UniqueCountFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +27,12 @@ public class MatchAggregation implements FlatMapFunction<Tuple2<ObjectNode, Obje
                 boolean countAgg = new CountFunction().countEvent(controlEventMatch);
 
                 if (countAgg) {
+                    collector.collect(Tuple2.of(controlEventMatch.f0, controlEventMatch.f1));
+                }
+            } else if (controlEventMatch.f1.get("rule").get(0).get("aggregation").get("aggfunction").asText().equals("uniquecount")) {
+                boolean uniqueCountAgg = new UniqueCountFunction().countEvent(controlEventMatch);
+
+                if (uniqueCountAgg) {
                     collector.collect(Tuple2.of(controlEventMatch.f0, controlEventMatch.f1));
                 }
             }

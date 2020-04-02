@@ -78,10 +78,12 @@ public class AlertCreation implements FlatMapFunction<Tuple2<ObjectNode, ObjectN
                     // Else, because of the "ALWAYS_RETURN_LIST" option, empty list is return when field has not bee found.
                     if (!searchFieldValue.isEmpty()) {
                         searchFieldValue.forEach(foundFields -> {
-                            alertNode.put(fields.asText(), foundFields.toString());
+                            if (foundFields != null) {
+                                alertNode.put(fields.asText(), foundFields.toString());
+                            }
                         });
                     } else {
-                        System.out.println("Field has not been found in event. Please review Sigma rule and corresponding events.");
+                        System.out.println("Field \""+ fields.toString() +"\" has not been found in event. Please review Sigma rule and corresponding events.");
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -90,7 +92,7 @@ public class AlertCreation implements FlatMapFunction<Tuple2<ObjectNode, ObjectN
         }
 
         // Add event that triggered alert
-        alertNode.put("event", controlEventMatch.f0.toString());
+        alertNode.put("rule.event", controlEventMatch.f0.toString());
 
         // Collect final AlertNode
         collector.collect(alertNode);

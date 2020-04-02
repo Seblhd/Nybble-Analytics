@@ -3,6 +3,7 @@ package com.nybble.alpha.alert_engine.aggregation_functions;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
+import com.nybble.alpha.alert_engine.aggregation_functions.commons.AssertAggregationCondition;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
@@ -82,7 +83,7 @@ public class CountFunction {
                         fieldByGroupCountMap.get(fieldByGroupCountNode).f1 = fieldByGroupCountMap.get(fieldByGroupCountNode).f1+=1;
 
                         //Check if aggregation condition has been met.
-                        boolean conditionFlag = checkAggregationCondition(aggregationNode.get("aggoperator").asText(),
+                        boolean conditionFlag = new AssertAggregationCondition().conditionResult(aggregationNode.get("aggoperator").asText(),
                                 fieldByGroupCountMap.get(fieldByGroupCountNode).f1,
                                 aggregationNode.get("aggvalue").asLong());
 
@@ -144,7 +145,7 @@ public class CountFunction {
                         fieldCountMap.get(fieldCountNode).f1 = fieldCountMap.get(fieldCountNode).f1+=1;
 
                         //Check if aggregation condition has been met.
-                        boolean conditionFlag = checkAggregationCondition(aggregationNode.get("aggoperator").asText(),
+                        boolean conditionFlag = new AssertAggregationCondition().conditionResult(aggregationNode.get("aggoperator").asText(),
                                 fieldCountMap.get(fieldCountNode).f1,
                                 aggregationNode.get("aggvalue").asLong());
 
@@ -199,7 +200,7 @@ public class CountFunction {
                     globalCountMap.get(globalCountNode).f1 = globalCountMap.get(globalCountNode).f1+=1;
 
                     //Check if aggregation condition has been met.
-                    boolean conditionFlag = checkAggregationCondition(aggregationNode.get("aggoperator").asText(),
+                    boolean conditionFlag = new AssertAggregationCondition().conditionResult(aggregationNode.get("aggoperator").asText(),
                             globalCountMap.get(globalCountNode).f1,
                             aggregationNode.get("aggvalue").asLong());
 
@@ -225,7 +226,7 @@ public class CountFunction {
         return collectEvent;
     }
 
-    private Boolean checkAggregationCondition(String aggregatorOperator, Long currentMapCount , Long aggregatorValue) {
+    /*private Boolean checkAggregationCondition(String aggregatorOperator, Long currentMapCount , Long aggregatorValue) {
 
         // Following each aggregation operator check aggregation value.
         switch (aggregatorOperator) {
@@ -257,5 +258,5 @@ public class CountFunction {
         }
 
         return false;
-    }
+    }*/
 }

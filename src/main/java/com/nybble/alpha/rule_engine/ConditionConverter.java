@@ -101,7 +101,7 @@ public class ConditionConverter {
 
         ObjectNode aggregationNode = jsonMapper.createObjectNode();
 
-        Matcher aggregationParser = Pattern.compile("(?<aggfunction>count|min|max|avg|sum)([(]?)(?<aggfield>\\w*?)([)]?)\\s?" +
+        Matcher aggregationParser = Pattern.compile("(?<aggfunction>uniquecount|count|min|max|avg|sum)([(]?)(?<aggfield>\\w*?)([)]?)\\s?" +
                 "(?:by)?\\s?(?<groupfield>\\w*?)\\s?(?<aggoperator><|>|=|<=|>=)\\s?(?<aggvalue>\\d*)").matcher(aggregationExpression);
 
         while(aggregationParser.find()) {
