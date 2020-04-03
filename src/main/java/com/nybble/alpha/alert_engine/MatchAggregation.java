@@ -1,9 +1,6 @@
 package com.nybble.alpha.alert_engine;
 
-import com.nybble.alpha.alert_engine.aggregation_functions.CountFunction;
-import com.nybble.alpha.alert_engine.aggregation_functions.MaxFunction;
-import com.nybble.alpha.alert_engine.aggregation_functions.MinFunction;
-import com.nybble.alpha.alert_engine.aggregation_functions.UniqueCountFunction;
+import com.nybble.alpha.alert_engine.aggregation_functions.*;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
@@ -24,30 +21,49 @@ public class MatchAggregation implements FlatMapFunction<Tuple2<ObjectNode, Obje
         } else if (!controlEventMatch.f1.get("rule").get(0).get("aggregation").isNull()
                 && !controlEventMatch.f1.get("rule").get(0).get("timeframe").isNull()) {
 
-            if (controlEventMatch.f1.get("rule").get(0).get("aggregation").get("aggfunction").asText().equals("count")) {
-                boolean countAgg = new CountFunction().countEvent(controlEventMatch);
+            switch (controlEventMatch.f1.get("rule").get(0).get("aggregation").get("aggfunction").asText()) {
+                case "count":
+                    boolean countAgg = new CountFunction().countEvent(controlEventMatch);
 
-                if (countAgg) {
-                    collector.collect(Tuple2.of(controlEventMatch.f0, controlEventMatch.f1));
-                }
-            } else if (controlEventMatch.f1.get("rule").get(0).get("aggregation").get("aggfunction").asText().equals("uniquecount")) {
-                boolean uniqueCountAgg = new UniqueCountFunction().countEvent(controlEventMatch);
+                    if (countAgg) {
+                        collector.collect(Tuple2.of(controlEventMatch.f0, controlEventMatch.f1));
+                    }
+                    break;
+                case "uniquecount":
+                    boolean uniqueCountAgg = new UniqueCountFunction().countEvent(controlEventMatch);
 
-                if (uniqueCountAgg) {
-                    collector.collect(Tuple2.of(controlEventMatch.f0, controlEventMatch.f1));
-                }
-            } else if (controlEventMatch.f1.get("rule").get(0).get("aggregation").get("aggfunction").asText().equals("max")) {
-                boolean maxAgg = new MaxFunction().highestValue(controlEventMatch);
+                    if (uniqueCountAgg) {
+                        collector.collect(Tuple2.of(controlEventMatch.f0, controlEventMatch.f1));
+                    }
+                    break;
+                case "max":
+                    boolean maxAgg = new MaxFunction().highestValue(controlEventMatch);
 
-                if (maxAgg) {
-                    collector.collect(Tuple2.of(controlEventMatch.f0, controlEventMatch.f1));
-                }
-            } else if (controlEventMatch.f1.get("rule").get(0).get("aggregation").get("aggfunction").asText().equals("min")) {
-                boolean minAgg = new MinFunction().lowestValue(controlEventMatch);
+                    if (maxAgg) {
+                        collector.collect(Tuple2.of(controlEventMatch.f0, controlEventMatch.f1));
+                    }
+                    break;
+                case "min":
+                    boolean minAgg = new MinFunction().lowestValue(controlEventMatch);
 
-                if (minAgg) {
-                    collector.collect(Tuple2.of(controlEventMatch.f0, controlEventMatch.f1));
-                }
+                    if (minAgg) {
+                        collector.collect(Tuple2.of(controlEventMatch.f0, controlEventMatch.f1));
+                    }
+                    break;
+                case "sum":
+                    boolean sumAgg = new SumFunction().sumValues(controlEventMatch);
+
+                    if (sumAgg) {
+                        collector.collect(Tuple2.of(controlEventMatch.f0, controlEventMatch.f1));
+                    }
+                    break;
+                case "avg":
+                    boolean avgAgg = new AverageFunction().averageValue(controlEventMatch);
+
+                    if (avgAgg) {
+                        collector.collect(Tuple2.of(controlEventMatch.f0, controlEventMatch.f1));
+                    }
+                    break;
             }
         }
     }

@@ -43,8 +43,8 @@ public class MinFunction {
 
         if (aggregationNode.has("aggfield") && aggregationNode.has("groupfield")) {
 
-            // Create fieldByGroupMaxNode
-            ObjectNode fieldByGroupMaxNode = jsonMapper.createObjectNode();
+            // Create fieldByGroupMinNode
+            ObjectNode fieldByGroupMinNode = jsonMapper.createObjectNode();
 
             // Get value of groupfield from EventNode
             String groupfield = JsonPath.using(jsonPathConfig)
@@ -54,16 +54,16 @@ public class MinFunction {
             if (groupfield != null) {
 
                 // Add values in fieldByGroupCountNode. This Node is the fieldByGroupCountMap HashMap key.
-                fieldByGroupMaxNode.put("ruleid", controlEventMatch.f1.get("ruleid").asText());
-                fieldByGroupMaxNode.put("groupfield", groupfield);
+                fieldByGroupMinNode.put("ruleid", controlEventMatch.f1.get("ruleid").asText());
+                fieldByGroupMinNode.put("groupfield", groupfield);
 
                 // If key already exists in fieldByGroupCountMap
-                if (fieldByGroupMinMap.containsKey(fieldByGroupMaxNode)) {
+                if (fieldByGroupMinMap.containsKey(fieldByGroupMinNode)) {
 
                     // Get event.created Date of current event.
                     Date currentEventDate = df.parse(controlEventMatch.f0.get("event").get("created").asText());
                     // Get event.created date of 1st event added in Map.
-                    Date firstEventDate = fieldByGroupMinMap.get(fieldByGroupMaxNode).f0;
+                    Date firstEventDate = fieldByGroupMinMap.get(fieldByGroupMinNode).f0;
 
                     // Get the number of seconds between firstEvent in Map and Current event time.
                     long timeGapSec = TimeUnit.MILLISECONDS.toSeconds(currentEventDate.getTime() - firstEventDate.getTime());
@@ -83,9 +83,9 @@ public class MinFunction {
 
                         if (aggfield != null) {
                             try {
-                                if (Long.parseLong(aggfield) < fieldByGroupMinMap.get(fieldByGroupMaxNode).f1) {
-                                    // If event value is highest, replace lowest value by highest value from matched event
-                                    fieldByGroupMinMap.get(fieldByGroupMaxNode).f1 = Long.parseLong(aggfield);
+                                if (Long.parseLong(aggfield) < fieldByGroupMinMap.get(fieldByGroupMinNode).f1) {
+                                    // If event value is lowest, replace old highest value by lowest value from matched event
+                                    fieldByGroupMinMap.get(fieldByGroupMinNode).f1 = Long.parseLong(aggfield);
                                 }
                             } catch (NumberFormatException nb) {
                                 System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Min function can only be apply on number values.");
@@ -98,16 +98,16 @@ public class MinFunction {
 
                         //Check if aggregation condition has been met.
                         boolean conditionFlag = new AssertAggregationCondition().conditionResult(aggregationNode.get("aggoperator").asText(),
-                                fieldByGroupMinMap.get(fieldByGroupMaxNode).f1,
+                                fieldByGroupMinMap.get(fieldByGroupMinNode).f1,
                                 aggregationNode.get("aggvalue").asLong());
 
                         // If still in Time gap and aggregation condition is met, collect event to create alert and remove entry in Map
                         if (conditionFlag) {
                             collectEvent = true;
-                            fieldByGroupMinMap.remove(fieldByGroupMaxNode);
+                            fieldByGroupMinMap.remove(fieldByGroupMinNode);
                         }
                     } else {
-                        fieldByGroupMinMap.remove(fieldByGroupMaxNode);
+                        fieldByGroupMinMap.remove(fieldByGroupMinNode);
                     }
                 } else {
                     // Else, create Tuple2 with 1st event.created timestamp and count with value to 1.
@@ -123,9 +123,9 @@ public class MinFunction {
                         try {
                             aggregationTuple.f1 = Long.parseLong(aggfield);
                             // Then create a new entry in HashMap with fieldCountNode as Key and aggregationTuple as value.
-                            fieldByGroupMinMap.put(fieldByGroupMaxNode, aggregationTuple);
+                            fieldByGroupMinMap.put(fieldByGroupMinNode, aggregationTuple);
                         } catch (NumberFormatException nb) {
-                            System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Max function can only be apply on number values.");
+                            System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Min function can only be apply on number values.");
                         }
                     } else {
                         System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() +
@@ -133,21 +133,25 @@ public class MinFunction {
                                 controlEventMatch.f1.get("ruleid").asText() + " and corresponding events.");
                     }
                 }
+            } else {
+                System.out.println("\"group-field\":\"" + aggregationNode.get("groupfield").asText() +
+                        "\" has not been found in event. Please check rule with id : " +
+                        controlEventMatch.f1.get("ruleid").asText() + " and corresponding events.");
             }
         } else if (aggregationNode.has("aggfield") && !aggregationNode.has("groupfield")) {
 
             // Create fieldByGroupCountNode
-            ObjectNode fieldMaxNode = jsonMapper.createObjectNode();
+            ObjectNode fieldMinNode = jsonMapper.createObjectNode();
 
             // Add values in globalCountNode. This Node is the globalCountMap HashMap key.
-            fieldMaxNode.put("ruleid", controlEventMatch.f1.get("ruleid").asText());
+            fieldMinNode.put("ruleid", controlEventMatch.f1.get("ruleid").asText());
 
             // If key already exists in fieldByGroupCountMap
-            if (fieldMinMap.containsKey(fieldMaxNode)) {
+            if (fieldMinMap.containsKey(fieldMinNode)) {
                 // Get event.created Date of current event.
                 Date currentEventDate = df.parse(controlEventMatch.f0.get("event").get("created").asText());
                 // Get event.created date of 1st event added in Map.
-                Date firstEventDate = fieldMinMap.get(fieldMaxNode).f0;
+                Date firstEventDate = fieldMinMap.get(fieldMinNode).f0;
 
                 // Get the number of seconds between firstEvent in Map and Current event time.
                 long timeGapSec = TimeUnit.MILLISECONDS.toSeconds(currentEventDate.getTime() - firstEventDate.getTime());
@@ -166,9 +170,9 @@ public class MinFunction {
 
                     if (aggfield != null) {
                         try {
-                            if (Long.parseLong(aggfield) > fieldMinMap.get(fieldMaxNode).f1) {
+                            if (Long.parseLong(aggfield) > fieldMinMap.get(fieldMinNode).f1) {
                                 // If event value is highest, replace lowest value by highest value from matched event
-                                fieldMinMap.get(fieldMaxNode).f1 = Long.parseLong(aggfield);
+                                fieldMinMap.get(fieldMinNode).f1 = Long.parseLong(aggfield);
                             }
                         } catch (NumberFormatException nb) {
                             System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Max function can only be apply on number values.");
@@ -181,16 +185,16 @@ public class MinFunction {
 
                     //Check if aggregation condition has been met.
                     boolean conditionFlag = new AssertAggregationCondition().conditionResult(aggregationNode.get("aggoperator").asText(),
-                            fieldMinMap.get(fieldMaxNode).f1,
+                            fieldMinMap.get(fieldMinNode).f1,
                             aggregationNode.get("aggvalue").asLong());
 
                     // If still in Time gap and aggregation condition is met, collect event to create alert and remove entry in Map
                     if (conditionFlag) {
                         collectEvent = true;
-                        fieldMinMap.remove(fieldMaxNode);
+                        fieldMinMap.remove(fieldMinNode);
                     }
                 } else {
-                    fieldMinMap.remove(fieldMaxNode);
+                    fieldMinMap.remove(fieldMinNode);
                 }
             } else {
                 // Else, create Tuple2 with 1st event.created timestamp and count with value to 1.
@@ -206,7 +210,7 @@ public class MinFunction {
                     try {
                         aggregationTuple.f1 = Long.parseLong(aggfield);
                         // Then create a new entry in HashMap with fieldCountNode as Key and aggregationTuple as value.
-                        fieldMinMap.put(fieldMaxNode, aggregationTuple);
+                        fieldMinMap.put(fieldMinNode, aggregationTuple);
                     } catch (NumberFormatException nb) {
                         System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Min function can only be apply on number values.");
                     }
