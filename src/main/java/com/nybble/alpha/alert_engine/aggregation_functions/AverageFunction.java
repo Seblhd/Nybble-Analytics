@@ -41,7 +41,7 @@ public class AverageFunction {
 
         if (aggregationNode.has("aggfield") && aggregationNode.has("groupfield")) {
 
-            // Create fieldByGroupCountNode
+            // Create fieldByGroupAvgNode
             ObjectNode fieldByAvgCountNode = jsonMapper.createObjectNode();
 
             // Get value of groupfield from EventNode
@@ -50,11 +50,11 @@ public class AverageFunction {
                     .read("$." + aggregationNode.get("groupfield").asText());
 
             if (groupfield != null) {
-                // Add values in fieldByGroupCountNode. This Node is the fieldByGroupCountMap HashMap key.
+                // Add values in fieldByGroupAvgNode. This Node is the fieldByGroupAvgMap HashMap key.
                 fieldByAvgCountNode.put("ruleid", controlEventMatch.f1.get("ruleid").asText());
                 fieldByAvgCountNode.put("groupfield", groupfield);
 
-                // If key already exists in fieldByGroupCountMap
+                // If key already exists in fieldByGroupAvgMap
                 if (fieldByGroupAvgMap.containsKey(fieldByAvgCountNode)) {
 
                     // Get event.created Date of current event.
@@ -70,8 +70,7 @@ public class AverageFunction {
                     // Else, delete entry in Map for this aggregation
                     if (timeGapSec < controlEventMatch.f1.get("rule").get(0).get("timeframe").get("duration").asLong()) {
 
-                        // Check if aggfield value already exists in List in Tuple2. If yes, do nothing, unique value is already there.
-                        // If not, add aggfield value in List in Tuple2.
+                        // If aggfield is not null and can be casted as Long, then add this one in List<Long> for average value.
 
                         // Get aggfield value from EventNode
                         String aggfield = JsonPath.using(jsonPathConfig)
@@ -80,11 +79,11 @@ public class AverageFunction {
 
                         if (aggfield != null) {
                             try {
-                                // If event value is highest, replace lowest value by highest value from matched event
+                                // Add value to List<Long> for average compute.
                                 fieldByGroupAvgMap.get(fieldByAvgCountNode).f1.add(Long.parseLong(aggfield));
 
                             } catch (NumberFormatException nb) {
-                                System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Max function can only be apply on number values.");
+                                System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Average function can only be apply on number values.");
                             }
                         } else {
                             System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() +
@@ -109,7 +108,7 @@ public class AverageFunction {
                         fieldByGroupAvgMap.remove(fieldByAvgCountNode);
                     }
                 } else {
-                    // Else, create Tuple2 with 1st event.created timestamp and count with value to 1.
+                    // Else, create Tuple2 with 1st event.created timestamp and add aggfield value from 1st event.
                     Tuple2<Date, List<Long>> aggregationTuple = new Tuple2<>();
                     aggregationTuple.f0 = df.parse(controlEventMatch.f0.get("event").get("created").asText());
 
@@ -122,10 +121,10 @@ public class AverageFunction {
                         aggregationTuple.f1 = new ArrayList<>();
                         try {
                             aggregationTuple.f1.add(Long.parseLong(aggfield));
-                            // Then create a new entry in HashMap with fieldCountNode as Key and aggregationTuple as value.
+                            // Then create a new entry in HashMap with fieldByGroupAvgNode as Key and aggregationTuple as value.
                             fieldByGroupAvgMap.put(fieldByAvgCountNode, aggregationTuple);
                         } catch (NumberFormatException nb) {
-                            System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Max function can only be apply on number values.");
+                            System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Average function can only be apply on number values.");
                         }
                     } else {
                         System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() +
@@ -162,8 +161,7 @@ public class AverageFunction {
                 // Else, delete entry in Map for this aggregation
                 if (timeGapSec < controlEventMatch.f1.get("rule").get(0).get("timeframe").get("duration").asLong()) {
 
-                    // Check if aggfield value already exists in List in Tuple2. If yes, do nothing, unique value is already there.
-                    // If not, add aggfield value in List in Tuple2.
+                    // If aggfield is not null and can be casted as Long, then add this one in List<Long> for average value.
 
                     // Get aggfield value from EventNode
                     String aggfield = JsonPath.using(jsonPathConfig)
@@ -172,7 +170,7 @@ public class AverageFunction {
 
                     if (aggfield != null) {
                         try {
-                            // If event value is highest, replace lowest value by highest value from matched event
+                            // Add value to List<Long> for average compute.
                             fieldAvgMap.get(fieldAvgNode).f1.add(Long.parseLong(aggfield));
 
                         } catch (NumberFormatException nb) {
@@ -201,7 +199,7 @@ public class AverageFunction {
                     fieldAvgMap.remove(fieldAvgNode);
                 }
             } else {
-                // Else, create Tuple2 with 1st event.created timestamp and count with value to 1.
+                // Else, create Tuple2 with 1st event.created timestamp and add aggfield value from 1st event.
                 Tuple2<Date, List<Long>> aggregationTuple = new Tuple2<>();
                 aggregationTuple.f0 = df.parse(controlEventMatch.f0.get("event").get("created").asText());
 
@@ -214,10 +212,10 @@ public class AverageFunction {
                     aggregationTuple.f1 = new ArrayList<>();
                     try {
                         aggregationTuple.f1.add(Long.parseLong(aggfield));
-                        // Then create a new entry in HashMap with fieldCountNode as Key and aggregationTuple as value.
+                        // Then create a new entry in HashMap with fieldAvgNode as Key and aggregationTuple as value.
                         fieldAvgMap.put(fieldAvgNode, aggregationTuple);
                     } catch (NumberFormatException nb) {
-                        System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Max function can only be apply on number values.");
+                        System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Average function can only be apply on number values.");
                     }
                 } else {
                     System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() +

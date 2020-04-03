@@ -41,7 +41,7 @@ public class UniqueCountFunction {
 
         if (aggregationNode.has("aggfield") && aggregationNode.has("groupfield")) {
 
-            // Create fieldByGroupCountNode
+            // Create fieldByGroupUniqueCountNode
             ObjectNode fieldByGroupUniqueCountNode = jsonMapper.createObjectNode();
 
             // Get value of groupfield from EventNode
@@ -50,11 +50,11 @@ public class UniqueCountFunction {
                     .read("$." + aggregationNode.get("groupfield").asText());
 
             if (groupfield != null) {
-                // Add values in fieldByGroupCountNode. This Node is the fieldByGroupCountMap HashMap key.
+                // Add values in fieldByGroupUniqueCountNode. This Node is the fieldByGroupUniqueCountMap HashMap key.
                 fieldByGroupUniqueCountNode.put("ruleid", controlEventMatch.f1.get("ruleid").asText());
                 fieldByGroupUniqueCountNode.put("groupfield", groupfield);
 
-                // If key already exists in fieldByGroupCountMap
+                // If key already exists in fieldByGroupUniqueCountMap
                 if (fieldByGroupUniqueCountMap.containsKey(fieldByGroupUniqueCountNode)) {
 
                     // Get event.created Date of current event.
@@ -114,7 +114,7 @@ public class UniqueCountFunction {
                     if (aggfield != null) {
                         aggregationTuple.f1 = new ArrayList<>();
                         aggregationTuple.f1.add(aggfield);
-                        // Then create a new entry in HashMap with fieldCountNode as Key and aggregationTuple as value.
+                        // Then create a new entry in HashMap with fieldByGroupUniqueCountNode as Key and aggregationTuple as value.
                         fieldByGroupUniqueCountMap.put(fieldByGroupUniqueCountNode, aggregationTuple);
                     } else {
                         System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() +
@@ -129,13 +129,13 @@ public class UniqueCountFunction {
             }
         } else if (aggregationNode.has("aggfield") && !aggregationNode.has("groupfield")) {
 
-            // Create fieldByGroupCountNode
+            // Create fieldUniqueCountNode
             ObjectNode fieldUniqueCountNode = jsonMapper.createObjectNode();
 
-            // Add values in globalCountNode. This Node is the globalCountMap HashMap key.
+            // Add values in fieldUniqueCountNode. This Node is the fieldUniqueCountMap HashMap key.
             fieldUniqueCountNode.put("ruleid", controlEventMatch.f1.get("ruleid").asText());
 
-            // If key already exists in fieldByGroupCountMap
+            // If key already exists in fieldUniqueCountMap
             if (fieldUniqueCountMap.containsKey(fieldUniqueCountNode)) {
 
                 // Get event.created Date of current event.
@@ -194,7 +194,7 @@ public class UniqueCountFunction {
 
                 if (aggfield != null) {
                     aggregationTuple.f1.add(aggfield);
-                    // Then create a new entry in HashMap with fieldCountNode as Key and aggregationTuple as value.
+                    // Then create a new entry in HashMap with fieldUniqueCountNode as Key and aggregationTuple as value.
                     fieldUniqueCountMap.put(fieldUniqueCountNode, aggregationTuple);
                 } else {
                     System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() +

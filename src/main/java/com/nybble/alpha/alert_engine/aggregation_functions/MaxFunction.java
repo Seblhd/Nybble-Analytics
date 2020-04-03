@@ -53,7 +53,7 @@ public class MaxFunction {
 
             if (groupfield != null) {
 
-                // Add values in fieldByGroupCountNode. This Node is the fieldByGroupCountMap HashMap key.
+                // Add values in fieldByGroupMaxNode. This Node is the fieldByGroupMaxMap HashMap key.
                 fieldByGroupMaxNode.put("ruleid", controlEventMatch.f1.get("ruleid").asText());
                 fieldByGroupMaxNode.put("groupfield", groupfield);
 
@@ -72,9 +72,6 @@ public class MaxFunction {
                     // If Time gap is inferior to Timefram, then increment count by one and then check operator and value number.
                     // Else, delete entry in Map for this aggregation
                     if (timeGapSec < controlEventMatch.f1.get("rule").get(0).get("timeframe").get("duration").asLong()) {
-
-                        // Check if aggfield value already exists in List in Tuple2. If yes, do nothing, unique value is already there.
-                        // If not, add aggfield value in List in Tuple2.
 
                         // Get aggfield value from EventNode
                         String aggfield = JsonPath.using(jsonPathConfig)
@@ -110,7 +107,7 @@ public class MaxFunction {
                         fieldByGroupMaxMap.remove(fieldByGroupMaxNode);
                     }
                 } else {
-                    // Else, create Tuple2 with 1st event.created timestamp and count with value to 1.
+                    // Else, create Tuple2 with 1st event.created timestamp and Max to value of 1st event.
                     Tuple2<Date, Long> aggregationTuple = new Tuple2<>();
                     aggregationTuple.f0 = df.parse(controlEventMatch.f0.get("event").get("created").asText());
 
@@ -122,7 +119,7 @@ public class MaxFunction {
                     if (aggfield != null) {
                         try {
                             aggregationTuple.f1 = Long.parseLong(aggfield);
-                            // Then create a new entry in HashMap with fieldCountNode as Key and aggregationTuple as value.
+                            // Then create a new entry in HashMap with fieldByGroupMaxNode as Key and aggregationTuple as value.
                             fieldByGroupMaxMap.put(fieldByGroupMaxNode, aggregationTuple);
                         } catch (NumberFormatException nb) {
                             System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Max function can only be apply on number values.");
@@ -140,13 +137,13 @@ public class MaxFunction {
             }
         } else if (aggregationNode.has("aggfield") && !aggregationNode.has("groupfield")) {
 
-            // Create fieldByGroupCountNode
+            // Create fieldMaxNode
             ObjectNode fieldMaxNode = jsonMapper.createObjectNode();
 
-            // Add values in globalCountNode. This Node is the globalCountMap HashMap key.
+            // Add values in fieldMaxNode. This Node is the fieldMaxMap HashMap key.
             fieldMaxNode.put("ruleid", controlEventMatch.f1.get("ruleid").asText());
 
-            // If key already exists in fieldByGroupCountMap
+            // If key already exists in fieldMaxMap
             if (fieldMaxMap.containsKey(fieldMaxNode)) {
                 // Get event.created Date of current event.
                 Date currentEventDate = df.parse(controlEventMatch.f0.get("event").get("created").asText());
@@ -160,8 +157,6 @@ public class MaxFunction {
                 // If Time gap is inferior to Timefram, then increment count by one and then check operator and value number.
                 // Else, delete entry in Map for this aggregation
                 if (timeGapSec < controlEventMatch.f1.get("rule").get(0).get("timeframe").get("duration").asLong()) {
-                    // Check if aggfield value already exists in List in Tuple2. If yes, do nothing, unique value is already there.
-                    // If not, add aggfield value in List in Tuple2.
 
                     // Get aggfield value from EventNode
                     String aggfield = JsonPath.using(jsonPathConfig)
@@ -197,7 +192,7 @@ public class MaxFunction {
                     fieldMaxMap.remove(fieldMaxNode);
                 }
             } else {
-                // Else, create Tuple2 with 1st event.created timestamp and count with value to 1.
+                // Else, create Tuple2 with 1st event.created timestamp and Max to value of 1st event.
                 Tuple2<Date, Long> aggregationTuple = new Tuple2<>();
                 aggregationTuple.f0 = df.parse(controlEventMatch.f0.get("event").get("created").asText());
 
@@ -209,7 +204,7 @@ public class MaxFunction {
                 if (aggfield != null) {
                     try {
                         aggregationTuple.f1 = Long.parseLong(aggfield);
-                        // Then create a new entry in HashMap with fieldCountNode as Key and aggregationTuple as value.
+                        // Then create a new entry in HashMap with fieldMaxNode as Key and aggregationTuple as value.
                         fieldMaxMap.put(fieldMaxNode, aggregationTuple);
                     } catch (NumberFormatException nb) {
                         System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Max function can only be apply on number values.");

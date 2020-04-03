@@ -43,7 +43,7 @@ public class SumFunction {
 
         if (aggregationNode.has("aggfield") && aggregationNode.has("groupfield")) {
 
-            // Create fieldByGroupMaxNode
+            // Create fieldByGroupSumNode
             ObjectNode fieldByGroupSumNode = jsonMapper.createObjectNode();
 
             // Get value of groupfield from EventNode
@@ -53,11 +53,11 @@ public class SumFunction {
 
             if (groupfield != null) {
 
-                // Add values in fieldByGroupCountNode. This Node is the fieldByGroupCountMap HashMap key.
+                // Add values in fieldByGroupSumNode. This Node is the fieldByGroupSumMap HashMap key.
                 fieldByGroupSumNode.put("ruleid", controlEventMatch.f1.get("ruleid").asText());
                 fieldByGroupSumNode.put("groupfield", groupfield);
 
-                // If key already exists in fieldByGroupCountMap
+                // If key already exists in fieldByGroupSumMap
                 if (fieldByGroupSumMap.containsKey(fieldByGroupSumNode)) {
 
                     // Get event.created Date of current event.
@@ -72,9 +72,6 @@ public class SumFunction {
                     // If Time gap is inferior to Timefram, then increment count by one and then check operator and value number.
                     // Else, delete entry in Map for this aggregation
                     if (timeGapSec < controlEventMatch.f1.get("rule").get(0).get("timeframe").get("duration").asLong()) {
-
-                        // Check if aggfield value already exists in List in Tuple2. If yes, do nothing, unique value is already there.
-                        // If not, add aggfield value in List in Tuple2.
 
                         // Get aggfield value from EventNode
                         String aggfield = JsonPath.using(jsonPathConfig)
@@ -108,7 +105,7 @@ public class SumFunction {
                         fieldByGroupSumMap.remove(fieldByGroupSumNode);
                     }
                 } else {
-                    // Else, create Tuple2 with 1st event.created timestamp and count with value to 1.
+                    // Else, create Tuple2 with 1st event.created timestamp and aggfield value from 1st event.
                     Tuple2<Date, Long> aggregationTuple = new Tuple2<>();
                     aggregationTuple.f0 = df.parse(controlEventMatch.f0.get("event").get("created").asText());
 
@@ -120,7 +117,7 @@ public class SumFunction {
                     if (aggfield != null) {
                         try {
                             aggregationTuple.f1 = Long.parseLong(aggfield);
-                            // Then create a new entry in HashMap with fieldCountNode as Key and aggregationTuple as value.
+                            // Then create a new entry in HashMap with fieldByGroupSumNode as Key and aggregationTuple as value.
                             fieldByGroupSumMap.put(fieldByGroupSumNode, aggregationTuple);
                         } catch (NumberFormatException nb) {
                             System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Sum function can only be apply on number values.");
@@ -138,13 +135,13 @@ public class SumFunction {
             }
         } else if (aggregationNode.has("aggfield") && !aggregationNode.has("groupfield")) {
 
-            // Create fieldByGroupCountNode
+            // Create fieldByGroupSumNode
             ObjectNode fieldSumNode = jsonMapper.createObjectNode();
 
-            // Add values in globalCountNode. This Node is the globalCountMap HashMap key.
+            // Add values in fieldSumNode. This Node is the fieldSumMap HashMap key.
             fieldSumNode.put("ruleid", controlEventMatch.f1.get("ruleid").asText());
 
-            // If key already exists in fieldByGroupCountMap
+            // If key already exists in fieldSumMap
             if (fieldSumMap.containsKey(fieldSumNode)) {
                 // Get event.created Date of current event.
                 Date currentEventDate = df.parse(controlEventMatch.f0.get("event").get("created").asText());
@@ -171,7 +168,7 @@ public class SumFunction {
                             // Add value from event to total value in Tuple2.
                             fieldSumMap.get(fieldSumNode).f1 = fieldSumMap.get(fieldSumNode).f1 + Long.parseLong(aggfield);
                         } catch (NumberFormatException nb) {
-                            System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Max function can only be apply on number values.");
+                            System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Sum function can only be apply on number values.");
                         }
                     } else {
                         System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() +
@@ -205,10 +202,10 @@ public class SumFunction {
                 if (aggfield != null) {
                     try {
                         aggregationTuple.f1 = Long.parseLong(aggfield);
-                        // Then create a new entry in HashMap with fieldCountNode as Key and aggregationTuple as value.
+                        // Then create a new entry in HashMap with fieldSumNode as Key and aggregationTuple as value.
                         fieldSumMap.put(fieldSumNode, aggregationTuple);
                     } catch (NumberFormatException nb) {
-                        System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Min function can only be apply on number values.");
+                        System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Sum function can only be apply on number values.");
                     }
                 } else {
                     System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() +
