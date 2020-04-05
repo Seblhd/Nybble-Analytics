@@ -3,12 +3,10 @@ package com.nybble.alpha.rule_engine;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
+
+import java.io.*;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 
@@ -16,15 +14,21 @@ public class SelectionConverter {
 
     private static StringBuilder selectionFieldBuilder = new StringBuilder();
     private static StringBuilder transformFieldBuilder = new StringBuilder();
+    private static StringBuilder transformBase64Builder = new StringBuilder();
     private static StringBuilder finalFieldBuilder = new StringBuilder();
     private static Boolean transformationAll = false;
+    private static Boolean base64Flag = false;
+    private static Boolean reFlag = false;
     private static String sigmaMapFile;
     private static String mapRuleId;
+    private static String base64OffsetValues;
+    private byte[] offset1 = new byte[1];
+    private byte[] offset2 = new byte[2];
     private final static Map<String, ObjectNode> sigmaFieldsMappingMap = new HashMap<>();
     private static ObjectMapper jsonMapper = new ObjectMapper();
 
     // Map Sigma field to ECS field and convert non-array selection field as JsonPath
-    String fieldConvert(String selectionKey, JsonNode selectionValue, String currentRuleId) throws InterruptedException {
+    String fieldConvert(String selectionKey, JsonNode selectionValue, String currentRuleId) throws InterruptedException, IOException {
 
         // Set Current Map RuleID
         mapRuleId = currentRuleId;
@@ -65,7 +69,7 @@ public class SelectionConverter {
 
                             try {
                                 finalFieldBuilder.append(selectionFieldBuilder(elementMap.getKey(), elementMap.getValue().get(i)));
-                            } catch (InterruptedException e) {
+                            } catch (InterruptedException | IOException e) {
                                 e.printStackTrace();
                             }
 
@@ -83,7 +87,7 @@ public class SelectionConverter {
                     } else {
                         try {
                             finalFieldBuilder.append(selectionFieldBuilder(elementMap.getKey(), elementMap.getValue()));
-                        } catch (InterruptedException e) {
+                        } catch (InterruptedException | IOException e) {
                             e.printStackTrace();
                         }
                     }
@@ -100,7 +104,7 @@ public class SelectionConverter {
             } else {
                 try {
                     finalFieldBuilder.append(selectionFieldBuilder(arraySelectionKey, element));
-                } catch (InterruptedException e) {
+                } catch (InterruptedException | IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -130,7 +134,7 @@ public class SelectionConverter {
         return finalFieldBuilder.toString();
     }
 
-    private String selectionFieldBuilder (String selectionKey, JsonNode selectionValue) throws InterruptedException {
+    private String selectionFieldBuilder (String selectionKey, JsonNode selectionValue) throws InterruptedException, IOException {
 
         // Reset String builder before using it
         selectionFieldBuilder.setLength(0);
@@ -165,22 +169,16 @@ public class SelectionConverter {
                 regexConvert = regexConvert.replaceAll("\\*", ".*");
                 selectionFieldBuilder.append("@.").append(selectionKey).append(" =~ ").append("/^").append(regexConvert).append("$/");
             } else if (textValue.startsWith("*")) {
-                //regexConvert = textValue.replaceAll("\\*", ".*");
-                //regexConvert = regexCharacterEscape(regexConvert);
                 regexConvert = regexCharacterEscape(textValue);
                 regexConvert = regexConvert.replaceAll("\\*", ".*");
                 selectionFieldBuilder.append("@.").append(selectionKey).append(" =~ ").append("/^").append(regexConvert).append("/");
             } else if (textValue.endsWith("*")) {
                 regexConvert = regexCharacterEscape(textValue);
                 regexConvert = regexConvert.replaceAll("\\*", ".*");
-                //regexConvert = textValue.replaceAll("\\*", ".*");
-                //regexConvert = regexCharacterEscape(regexConvert);
                 selectionFieldBuilder.append("@.").append(selectionKey).append(" =~ ").append("/").append(regexConvert).append("$/");
             } else if (textValue.contains("*")) {
                 regexConvert = regexCharacterEscape(textValue);
                 regexConvert = regexConvert.replaceAll("\\*", ".*");
-                //regexConvert = textValue.replaceAll("\\*", ".*");
-                //regexConvert = regexCharacterEscape(regexConvert);
                 selectionFieldBuilder.append("@.").append(selectionKey).append(" =~ ").append("/").append(regexConvert).append("/");
             } else if (textValue.isEmpty()) {
                 selectionFieldBuilder.append("@.").append(selectionKey).append(" == \"\"");
@@ -210,23 +208,72 @@ public class SelectionConverter {
             selectionFieldBuilder.append("@." + selectionKey + " == " + null);
         }
 
+        // Reset base64Flag and reFlag
+        base64Flag = false;
+        reFlag = false;
+
         return selectionFieldBuilder.toString();
     }
 
-    private String transformationFieldModifier (String selectionKey, String textValue) {
+    private String transformationFieldModifier (String selectionKey, String textValue) throws IOException {
         String[] transformationOperators = selectionKey.split("\\|");
         transformFieldBuilder.setLength(0);
+
+        // If base64offset is in transformation operator, then use specific StringBuilder.
+        List<String> operatorsList = Arrays.asList(transformationOperators);
+        if (operatorsList.contains("base64offset")) {
+            // Reset transfromBase64Builder
+            transformBase64Builder.setLength(0);
+
+            transformBase64Builder.append("(");
+
+            //Create ByteArray to append byte offset to Base64 encoded textValue
+            ByteArrayOutputStream appendOffset1 = new ByteArrayOutputStream();
+            ByteArrayOutputStream appendOffset2 = new ByteArrayOutputStream();
+
+            //Append 1 bytes to textValue
+            appendOffset1.write(offset1);
+            appendOffset1.write(textValue.getBytes());
+            // Append 2 bytes to textValue
+            appendOffset2.write(offset2);
+            appendOffset2.write(textValue.getBytes());
+
+            String b64TextValueOffset0 = Base64.getEncoder().withoutPadding().encodeToString(textValue.getBytes());
+            String b64TextValueOffset1 = Base64.getEncoder().withoutPadding().encodeToString(appendOffset1.toByteArray());
+            String b64TextValueOffset2 = Base64.getEncoder().withoutPadding().encodeToString(appendOffset2.toByteArray());
+
+            b64TextValueOffset1 = b64TextValueOffset1.substring(0, b64TextValueOffset1.length() -1).substring(2);
+            b64TextValueOffset2 = b64TextValueOffset2.substring(0, b64TextValueOffset2.length() -1).substring(4);
+
+            transformBase64Builder.append(b64TextValueOffset0).append("|")
+                    .append(b64TextValueOffset1).append("|")
+                    .append(b64TextValueOffset2).append(")");
+
+            base64OffsetValues = transformBase64Builder.toString();
+
+            base64Flag = true;
+        }
 
         for (int i = 1; i < transformationOperators.length; i++) {
             switch (transformationOperators[i]) {
                 case "startswith":
-                    transformFieldBuilder.append(textValue).append("*");
+                    if (base64Flag) {
+                        transformFieldBuilder.append(base64OffsetValues).append("*");
+                    } else {
+                        transformFieldBuilder.append(textValue).append("*");
+                    }
                     break;
                 case "endswith":
-                    transformFieldBuilder.append("*").append(textValue);
+                    if (base64Flag) {
+                        transformFieldBuilder.append("*").append(base64OffsetValues);
+                    } else {
+                        transformFieldBuilder.append("*").append(textValue);
+                    }
                     break;
                 case "contains":
-                    if (!textValue.startsWith("*") && !textValue.endsWith("*")) {
+                    if (base64Flag) {
+                        transformFieldBuilder.append("*").append(base64OffsetValues).append("*");
+                    } else if (!textValue.startsWith("*") && !textValue.endsWith("*")) {
                         transformFieldBuilder.append("*").append(textValue).append("*");
                     } else {
                         transformFieldBuilder.append(textValue);
@@ -234,6 +281,15 @@ public class SelectionConverter {
                     break;
                 case "all":
                     transformationAll = true;
+                    break;
+                case "re":
+                    reFlag = true;
+                    break;
+                case "base64":
+                    transformFieldBuilder.append(Base64.getEncoder().encodeToString(textValue.getBytes()));
+                    break;
+                case "base64offset":
+                    // Just break because base64 values has been prepared before.
                     break;
                 default:
                     System.out.println("Value modifiers \"" + transformationOperators[i] + "\" operator is invalid or not yet supported");
@@ -261,21 +317,27 @@ public class SelectionConverter {
 
     private String regexCharacterEscape (String textValue) {
 
-        textValue = textValue.replaceAll("\\\\", "\\\\\\\\");
-        textValue = textValue.replaceAll("/", Matcher.quoteReplacement("\\/"));
-        textValue = textValue.replaceAll("\\.", "\\\\.");
-        textValue = textValue.replaceAll("\\?", "\\\\?");
-        textValue = textValue.replaceAll("\\+", "\\\\+");
-        textValue = textValue.replaceAll("\\^", "\\\\^");
-        textValue = textValue.replaceAll("\\$", "\\\\\\$");
-        textValue = textValue.replaceAll("\\{", "\\\\{");
-        textValue = textValue.replaceAll("}", "\\\\}");
-        textValue = textValue.replaceAll("\\(", "\\\\(");
-        textValue = textValue.replaceAll("\\)", "\\\\)");
-        textValue = textValue.replaceAll("\\|", "\\\\|");
-        textValue = textValue.replaceAll("\\[", "\\\\[");
-        textValue = textValue.replaceAll("]", "\\\\]");
-        textValue = textValue.replaceAll("'", "\\'");
+        if (reFlag) {
+            // No character escape
+        } else if (base64Flag) {
+            // No character escape
+        } else {
+            textValue = textValue.replaceAll("\\\\", "\\\\\\\\");
+            textValue = textValue.replaceAll("/", Matcher.quoteReplacement("\\/"));
+            textValue = textValue.replaceAll("\\.", "\\\\.");
+            textValue = textValue.replaceAll("\\?", "\\\\?");
+            textValue = textValue.replaceAll("\\+", "\\\\+");
+            textValue = textValue.replaceAll("\\^", "\\\\^");
+            textValue = textValue.replaceAll("\\$", "\\\\\\$");
+            textValue = textValue.replaceAll("\\{", "\\\\{");
+            textValue = textValue.replaceAll("}", "\\\\}");
+            textValue = textValue.replaceAll("\\(", "\\\\(");
+            textValue = textValue.replaceAll("\\)", "\\\\)");
+            textValue = textValue.replaceAll("\\|", "\\\\|");
+            textValue = textValue.replaceAll("\\[", "\\\\[");
+            textValue = textValue.replaceAll("]", "\\\\]");
+            textValue = textValue.replaceAll("'", "\\'");
+        }
 
         return textValue;
     }
