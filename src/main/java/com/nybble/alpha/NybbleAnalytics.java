@@ -125,7 +125,7 @@ public class NybbleAnalytics {
 				.timeWindow(Time.days(1))
 				.trigger(new EventStreamTrigger())
 				.apply(new EventWindowFunction());
-		//windowsLogsStream.print();
+		ruleEngineStream.print();
 
 
 		// Create a Sigma Alert Stream containing events filtered from rules.
@@ -135,7 +135,7 @@ public class NybbleAnalytics {
 				.flatMap(new ControlEventMatcher())
 				.flatMap(new MatchAggregation())
 				.flatMap(new AlertCreation());
-		//alertStream.print();
+		alertStream.print();
 
 		// Send alerts to Elasticsearch
 		alertStream.map(Objects::toString).addSink(esSinkAlertBuilder.build());

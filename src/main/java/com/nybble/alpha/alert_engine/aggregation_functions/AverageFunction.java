@@ -75,7 +75,7 @@ public class AverageFunction {
                         // Get aggfield value from EventNode
                         String aggfield = JsonPath.using(jsonPathConfig)
                                 .parse(jsonMapper.writeValueAsString(controlEventMatch.f0))
-                                .read("$." + aggregationNode.get("aggfield").asText());
+                                .read("$." + aggregationNode.get("aggfield").asText()).toString();
 
                         if (aggfield != null) {
                             try {
@@ -115,7 +115,7 @@ public class AverageFunction {
                     // Get aggfield value from EventNode
                     String aggfield = JsonPath.using(jsonPathConfig)
                             .parse(jsonMapper.writeValueAsString(controlEventMatch.f0))
-                            .read("$." + aggregationNode.get("aggfield").asText());
+                            .read("$." + aggregationNode.get("aggfield").asText()).toString();
 
                     if (aggfield != null) {
                         aggregationTuple.f1 = new ArrayList<>();
@@ -166,7 +166,7 @@ public class AverageFunction {
                     // Get aggfield value from EventNode
                     String aggfield = JsonPath.using(jsonPathConfig)
                             .parse(jsonMapper.writeValueAsString(controlEventMatch.f0))
-                            .read("$." + aggregationNode.get("aggfield").asText());
+                            .read("$." + aggregationNode.get("aggfield").asText()).toString();
 
                     if (aggfield != null) {
                         try {
@@ -206,7 +206,7 @@ public class AverageFunction {
                 // Get aggfield value from EventNode
                 String aggfield = JsonPath.using(jsonPathConfig)
                         .parse(jsonMapper.writeValueAsString(controlEventMatch.f0))
-                        .read("$." + aggregationNode.get("aggfield").asText());
+                        .read("$." + aggregationNode.get("aggfield").asText()).toString();
 
                 if (aggfield != null) {
                     aggregationTuple.f1 = new ArrayList<>();

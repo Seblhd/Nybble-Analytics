@@ -76,7 +76,7 @@ public class MaxFunction {
                         // Get aggfield value from EventNode
                         String aggfield = JsonPath.using(jsonPathConfig)
                                 .parse(jsonMapper.writeValueAsString(controlEventMatch.f0))
-                                .read("$." + aggregationNode.get("aggfield").asText());
+                                .read("$." + aggregationNode.get("aggfield").asText()).toString();
 
                         if (aggfield != null) {
                             try {
@@ -114,7 +114,7 @@ public class MaxFunction {
                     // Get aggfield value from EventNode
                     String aggfield = JsonPath.using(jsonPathConfig)
                             .parse(jsonMapper.writeValueAsString(controlEventMatch.f0))
-                            .read("$." + aggregationNode.get("aggfield").asText());
+                            .read("$." + aggregationNode.get("aggfield").asText()).toString();
 
                     if (aggfield != null) {
                         try {
@@ -161,7 +161,7 @@ public class MaxFunction {
                     // Get aggfield value from EventNode
                     String aggfield = JsonPath.using(jsonPathConfig)
                             .parse(jsonMapper.writeValueAsString(controlEventMatch.f0))
-                            .read("$." + aggregationNode.get("aggfield").asText());
+                            .read("$." + aggregationNode.get("aggfield").asText()).toString();
 
                     if (aggfield != null) {
                         try {
@@ -199,7 +199,7 @@ public class MaxFunction {
                 // Get aggfield value from EventNode
                 String aggfield = JsonPath.using(jsonPathConfig)
                         .parse(jsonMapper.writeValueAsString(controlEventMatch.f0))
-                        .read("$." + aggregationNode.get("aggfield").asText());
+                        .read("$." + aggregationNode.get("aggfield").asText()).toString();
 
                 if (aggfield != null) {
                     try {

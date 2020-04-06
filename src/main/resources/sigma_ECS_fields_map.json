@@ -7,6 +7,7 @@
 		"ServiceName":"winlog.event_data.ServiceName",
 		"ParentImage":"process.parent.executable",
 		"dst_ip":"destination.ip",
+                "dest_ip":"destination.ip",
 		"src_ip":"source.ip",
 		"TargetObject":"winlog.event_data.TargetObject",
 		"ServiceFileName":"winlog.event_data.ImagePath",
@@ -128,6 +129,7 @@
                 "dns_query":"dns.question.name",
                 "TaskName":"winlog.event_data.TaskName",
                 "dst_port":"destination.port",
+                "dest_port":"destination.port",
                 "src_port":"source.port",
                 "destination.port":"destination.port",
                 "clientip":"client.ip",
@@ -143,11 +145,13 @@
                 "c-ua":"user_agent.original",
                 "c-dns":"source.registered_domain",
                 "client_ip":"client.ip",
+                "c_ip":"client.ip",
                 "vhost":"nybble.http.vhost",
                 "LogonGuid":"winlog.event_data.LogonGuid",
                 "Hashes":"hash.sha256",
                 "ParentProcessGuid":"winlog.event_data.ParentProcessGuid",
                 "EventCode":"event.code",
-                "AccountDomain":"user.domain"
+                "AccountDomain":"user.domain",
+                "bytes_out":"client.bytes"
 	}
 }

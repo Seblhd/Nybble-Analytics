@@ -1,0 +1,19 @@
+title: Sum function test
+id: 0a98a10c-685d-4ab0-bddc-b6bdd1d48444
+status: experimental
+description: Detects when sum of bytes out is to high.
+tags:
+    - sum.function
+author: Sebasien Lehuede
+level: high
+logsource:
+    category: webserver
+detection:
+    selection:
+        dest_port: 80
+    timeframe: 2h
+    condition: selection|sum(bytes_out) by c_ip > 2000
+fields:
+    - c_ip
+    - dest_ip
+    - dest_port
