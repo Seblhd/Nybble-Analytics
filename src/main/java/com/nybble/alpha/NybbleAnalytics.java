@@ -4,7 +4,6 @@ import com.nybble.alpha.control_stream.ControlDynamicKey;
 import com.nybble.alpha.control_stream.MultipleRulesProcess;
 import com.nybble.alpha.control_stream.SigmaSourceFunction;
 import com.nybble.alpha.alert_engine.*;
-
 import com.nybble.alpha.event_stream.EventDynamicKey;
 import com.nybble.alpha.event_stream.EventStreamTrigger;
 import com.nybble.alpha.event_stream.EventWindowFunction;
@@ -24,7 +23,6 @@ import org.apache.flink.streaming.util.serialization.JSONKeyValueDeserialization
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.Requests;
-
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -39,14 +37,17 @@ public class NybbleAnalytics {
 		// set up the streaming execution environment
 		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
+		// Get configuration from config file.
+		NybbleAnalyticsConfiguration nybbleAnalyticsConfiguration = new NybbleAnalyticsConfiguration();
+
 		// Set up Kafka environment
 		Properties kafkaProperties = new Properties();
-		kafkaProperties.setProperty("bootstrap.servers", "localhost:9092");
-		kafkaProperties.setProperty("group.id", "flink_kafka_consumer");
+		kafkaProperties.setProperty("bootstrap.servers", nybbleAnalyticsConfiguration.getKafkaBootstrapServers());
+		kafkaProperties.setProperty("group.id", nybbleAnalyticsConfiguration.getKafkaGroupId());
 
 		// Create a Kafka consumer where topic is "windows-logs", using JSON Deserialization schema and properties provided above. Read from the beginning.
 		JSONKeyValueDeserializationSchema logsSchema = new JSONKeyValueDeserializationSchema(false);
-		FlinkKafkaConsumer<ObjectNode> windowsLogsConsumer = new FlinkKafkaConsumer("windows-logs", logsSchema, kafkaProperties);
+		FlinkKafkaConsumer<ObjectNode> windowsLogsConsumer = new FlinkKafkaConsumer(nybbleAnalyticsConfiguration.getKafkaTopicName(), logsSchema, kafkaProperties);
 		windowsLogsConsumer.setStartFromEarliest();
 
 		// Set up ElasticSearch environment

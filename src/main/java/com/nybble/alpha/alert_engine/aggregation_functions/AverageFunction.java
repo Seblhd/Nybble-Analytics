@@ -8,7 +8,6 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
-
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -17,7 +16,6 @@ import java.util.concurrent.TimeUnit;
 
 public class AverageFunction {
 
-    // Create JsonPath configuration to search value of fields in EventNodes.
     private static HashMap<ObjectNode, Tuple2<Date, List<Long>>> fieldAvgMap = new HashMap<>();
     private static HashMap<ObjectNode, Tuple2<Date, List<Long>>> fieldByGroupAvgMap = new HashMap<>();
     private ObjectMapper jsonMapper = new ObjectMapper();

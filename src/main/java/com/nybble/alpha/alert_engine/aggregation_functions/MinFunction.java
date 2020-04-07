@@ -19,7 +19,6 @@ import java.util.concurrent.TimeUnit;
 
 public class MinFunction {
 
-    // Create JsonPath configuration to search value of fields in EventNodes.
     private static HashMap<ObjectNode, Tuple2<Date, Long>> fieldMinMap = new HashMap<>();
     private static HashMap<ObjectNode, Tuple2<Date, Long>> fieldByGroupMinMap = new HashMap<>();
     private ObjectMapper jsonMapper = new ObjectMapper();

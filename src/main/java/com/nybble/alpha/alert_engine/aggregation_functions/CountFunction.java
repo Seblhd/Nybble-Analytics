@@ -8,7 +8,6 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
-
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -19,7 +18,6 @@ import java.util.concurrent.TimeUnit;
 
 public class CountFunction {
 
-    // Create JsonPath configuration to search value of fields in EventNodes.
     private static HashMap<ObjectNode, Tuple2<Date, Long>> globalCountMap = new HashMap<>();
     private static HashMap<ObjectNode, Tuple2<Date, Long>> fieldCountMap = new HashMap<>();
     private static HashMap<ObjectNode, Tuple2<Date, Long>> fieldByGroupCountMap = new HashMap<>();
@@ -225,38 +223,4 @@ public class CountFunction {
 
         return collectEvent;
     }
-
-    /*private Boolean checkAggregationCondition(String aggregatorOperator, Long currentMapCount , Long aggregatorValue) {
-
-        // Following each aggregation operator check aggregation value.
-        switch (aggregatorOperator) {
-            case ">":
-                if (currentMapCount > aggregatorValue) {
-                    return true;
-                }
-                break;
-            case ">=":
-                if (currentMapCount >= aggregatorValue) {
-                    return true;
-                }
-                break;
-            case "<":
-                if (currentMapCount < aggregatorValue) {
-                    return true;
-                }
-                break;
-            case "<=":
-                if (currentMapCount <= aggregatorValue) {
-                    return true;
-                }
-                break;
-            case "=":
-                if (currentMapCount.equals(aggregatorValue)) {
-                    return true;
-                }
-                break;
-        }
-
-        return false;
-    }*/
 }

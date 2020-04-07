@@ -6,8 +6,6 @@ import org.apache.flink.streaming.api.functions.co.RichCoFlatMapFunction;
 import org.apache.flink.util.Collector;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class LogSourceMatcher extends RichCoFlatMapFunction<ObjectNode, ObjectNode, Tuple2<ObjectNode, ArrayList<ObjectNode>>> {
 
