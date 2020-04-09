@@ -3,8 +3,8 @@
   "map" : {
     "detection" : {
       "dest_port" : "destination.port",
-      "c_ip" : "client.ip",
-      "bytes_out" : "client.bytes"
+      "bytes_out" : "client.bytes",
+      "c_ip" : "client.ip"
     },
     "fields" : {
       "c_ip" : "client.ip",

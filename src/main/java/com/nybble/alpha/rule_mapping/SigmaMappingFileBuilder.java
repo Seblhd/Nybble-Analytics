@@ -13,6 +13,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SigmaMappingFileBuilder {
 
@@ -154,6 +156,34 @@ public class SigmaMappingFileBuilder {
                         }
                         // Add selection field(s) from detection to mapping file.
                         sigmaMappingNode.putObject("map").set("detection", selectionFieldsNode);
+                    } else if (sigmaDetectionFieldMap.getKey().equals("condition")) {
+
+                        String condition = sigmaDetectionFieldMap.getValue().toString();
+
+                        // Split search and aggregation expression
+                        int conditionLength = condition.split(" \\| |\\|").length;
+
+                        if (conditionLength == 2) {
+                            // Add fields from aggregation in Mapping file.
+                            String aggregationExpression = condition.split(" \\| |\\|")[1];
+
+                            Matcher aggregationParser = Pattern.compile("(?<aggfunction>uniquecount|count|min|max|avg|sum)([(]?)(?<aggfield>\\w*?)([)]?)\\s?" +
+                                    "(?:by)?\\s?(?<groupfield>\\w*?)\\s?(?<aggoperator><|>|=|<=|>=)\\s?(?<aggvalue>\\d*)").matcher(aggregationExpression);
+
+                            while(aggregationParser.find()) {
+                                // Map aggregation field if not empty and add to mapping node.
+                                if (!aggregationParser.group("aggfield").isEmpty()) {
+                                    selectionFieldsNode.put(aggregationParser.group("aggfield")
+                                            , globalMapMapping(aggregationParser.group("aggfield"), globalFieldMapping));
+                                }
+
+                                // Map group field if not empty and add to mapping node.
+                                if (!aggregationParser.group("groupfield").isEmpty()) {
+                                    selectionFieldsNode.put(aggregationParser.group("groupfield")
+                                            , globalMapMapping(aggregationParser.group("groupfield"), globalFieldMapping));
+                                }
+                            }
+                        }
                     }
                 }
             }
