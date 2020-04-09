@@ -11,13 +11,16 @@ public class NybbleAnalyticsConfiguration {
     private String bootstrapServersPort;
     private String kafkaGroupId;
     private String topicName;
-    private String elasticsearchIp;
+    private String elasticsearchHost;
     private Integer elasticsearchPort;
     private String elasticsearchProto;
     private String elasticsearchEventIndex;
     private String elasticsearchAlertIndex;
+    private String globalMapFile;
+    private String sigmaRulesFolder;
+    private String sigmaMapsFolder;
 
-    NybbleAnalyticsConfiguration() {
+    public NybbleAnalyticsConfiguration() {
         try (InputStream configFile = new FileInputStream("./src/main/resources/config/config.properties")) {
 
             Properties nybbleAnalyticsConf = new Properties();
@@ -32,11 +35,16 @@ public class NybbleAnalyticsConfiguration {
             this.topicName = nybbleAnalyticsConf.getProperty("topic.name");
 
             // Elasticsearch parameters
-            this.elasticsearchIp = nybbleAnalyticsConf.getProperty("elasticsearch.address");
+            this.elasticsearchHost = nybbleAnalyticsConf.getProperty("elasticsearch.host");
             this.elasticsearchPort = Integer.parseInt(nybbleAnalyticsConf.getProperty("elasticsearch.port"));
             this.elasticsearchProto = nybbleAnalyticsConf.getProperty("elasticsearch.proto");
             this.elasticsearchEventIndex = nybbleAnalyticsConf.getProperty("elasticsearch.event.index");
             this.elasticsearchAlertIndex = nybbleAnalyticsConf.getProperty("elasticsearch.alert.index");
+
+            // Sigma Rules parameters
+            this.globalMapFile = nybbleAnalyticsConf.getProperty("global.map");
+            this.sigmaRulesFolder = nybbleAnalyticsConf.getProperty("rules.folder");
+            this.sigmaMapsFolder = nybbleAnalyticsConf.getProperty("maps.folder");
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -63,23 +71,23 @@ public class NybbleAnalyticsConfiguration {
         return this.topicName;
     }
 
-    public String getElasticsearchIp() {
-        return elasticsearchIp;
-    }
+    public String getElasticsearchHost() { return elasticsearchHost; }
 
     public Integer getElasticsearchPort() {
         return elasticsearchPort;
     }
 
-    public String getElasticsearchProto() {
-        return elasticsearchProto;
-    }
+    public String getElasticsearchProto() { return elasticsearchProto; }
 
-    public String getElasticsearchEventIndex() {
-        return elasticsearchEventIndex;
-    }
+    public String getElasticsearchEventIndex() { return elasticsearchEventIndex; }
 
     public String getElasticsearchAlertIndex() {
         return elasticsearchAlertIndex;
     }
+
+    public String getGlobalMapFile() { return globalMapFile; }
+
+    public String getSigmaMapsFolder() { return sigmaMapsFolder; }
+
+    public String getSigmaRulesFolder() { return sigmaRulesFolder; }
 }

@@ -1,5 +1,6 @@
 package com.nybble.alpha.control_stream;
 
+import com.nybble.alpha.NybbleAnalyticsConfiguration;
 import com.nybble.alpha.rule_mapping.SigmaFieldMapWatchThread;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
@@ -20,11 +21,14 @@ public class SigmaSourceFunction implements SourceFunction<ObjectNode> {
     @Override
     public void run(SourceContext<ObjectNode> sCtx) {
 
+        // Create new Nybble Analytics configuration object to get path.
+        NybbleAnalyticsConfiguration nybbleAnalyticsConfiguration = new NybbleAnalyticsConfiguration();
+
         // Set path for Rules folder.
-        Path sigmaRulesFolderPath = Paths.get("./src/main/resources/SigmaRules/");
+        Path sigmaRulesFolderPath = Paths.get(nybbleAnalyticsConfiguration.getSigmaRulesFolder());
 
         // Set path for Maps folder.
-        Path sigmaMapsFolderPath = Paths.get("./src/main/resources/SigmaMaps/");
+        Path sigmaMapsFolderPath = Paths.get(nybbleAnalyticsConfiguration.getSigmaMapsFolder());
 
         try {
             // Create a Watch Service and Thread to monitor Sigma Rules Folder.

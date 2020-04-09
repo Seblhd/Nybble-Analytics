@@ -1,5 +1,6 @@
 package com.nybble.alpha.rule_engine;
 
+import com.nybble.alpha.NybbleAnalyticsConfiguration;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
@@ -24,6 +25,7 @@ public class SelectionConverter {
     private byte[] offset2 = new byte[2];
     private final static Map<String, ObjectNode> sigmaFieldsMappingMap = new HashMap<>();
     private static ObjectMapper jsonMapper = new ObjectMapper();
+    private static NybbleAnalyticsConfiguration nybbleAnalyticsConfiguration = new NybbleAnalyticsConfiguration();
 
     // Map Sigma field to ECS field and convert non-array selection field as JsonPath
     String fieldConvert(String selectionKey, JsonNode selectionValue, String currentRuleId) throws InterruptedException, IOException {
@@ -363,7 +365,8 @@ public class SelectionConverter {
 
     public static void setRulePath(String currentRulePath) {
         // Set SigmaMap Path to be able to set the SigmaMappingMap used for Mapping.
-        String sigmaMapFolderPath = "./src/main/resources/SigmaMaps/";
+        String sigmaMapFolderPath = nybbleAnalyticsConfiguration.getSigmaMapsFolder();
+
         if (currentRulePath.endsWith(".yml")) {
             String mapFile = new File(currentRulePath).getName().replaceAll("\\.yml", ".json");
             sigmaMapFile = sigmaMapFolderPath + mapFile;

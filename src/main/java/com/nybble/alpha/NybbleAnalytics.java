@@ -52,7 +52,12 @@ public class NybbleAnalytics {
 
 		// Set up ElasticSearch environment
 		List<HttpHost> httpHosts = new ArrayList<>();
-		httpHosts.add(new HttpHost("127.0.0.1", 9200, "http"));
+		httpHosts.add(new HttpHost(nybbleAnalyticsConfiguration.getElasticsearchHost(),
+				nybbleAnalyticsConfiguration.getElasticsearchPort(),
+				nybbleAnalyticsConfiguration.getElasticsearchProto()));
+
+		String esEventIndexName = nybbleAnalyticsConfiguration.getElasticsearchEventIndex();
+		String esAlertIndexName = nybbleAnalyticsConfiguration.getElasticsearchAlertIndex();
 
 		// Create a ElasticSearch sink where index is "events" to store events from Kafka.
 		ElasticsearchSink.Builder<String> esSinkDataBuilder = new ElasticsearchSink.Builder<>(httpHosts, new ElasticsearchSinkFunction<String>() {
@@ -61,7 +66,7 @@ public class NybbleAnalytics {
 				HashMap eventNode = mapper.readValue(element, HashMap.class);
 
 				return Requests.indexRequest()
-						.index("events-" + esIndexFormat.format(new Date()))
+						.index(esEventIndexName + esIndexFormat.format(new Date()))
 						.source(eventNode);
 			}
 
@@ -82,7 +87,7 @@ public class NybbleAnalytics {
 				HashMap alertNode = mapper.readValue(element, HashMap.class);
 
 				return Requests.indexRequest()
-						.index("alert-"+ alertNode.get("rule.status").toString() + "-" + esIndexFormat.format(new Date()))
+						.index(esAlertIndexName + alertNode.get("rule.status").toString() + "-" + esIndexFormat.format(new Date()))
 						.id(alertNode.get("alert.uid").toString())
 						.source(alertNode);
 			}

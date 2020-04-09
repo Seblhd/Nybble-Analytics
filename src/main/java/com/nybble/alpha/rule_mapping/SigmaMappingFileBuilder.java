@@ -1,5 +1,6 @@
 package com.nybble.alpha.rule_mapping;
 
+import com.nybble.alpha.NybbleAnalyticsConfiguration;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectReader;
@@ -19,17 +20,18 @@ public class SigmaMappingFileBuilder {
     private static ObjectMapper fileWriter = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
     private static ObjectNode globalFieldMapping = jsonMapper.createObjectNode();
     private static ObjectNode sigmaMappingNode = fileWriter.createObjectNode();
+    private NybbleAnalyticsConfiguration nybbleAnalyticsConfiguration = new NybbleAnalyticsConfiguration();
 
 
     public SigmaMappingFileBuilder() throws IOException {
         // Create an ObjectNode containing Global Mapping fields.
-        globalFieldMapping = jsonMapper.readValue(new File("./src/main/resources/sigma_ECS_fields_map.json"), ObjectNode.class);
+        globalFieldMapping = jsonMapper.readValue(new File(nybbleAnalyticsConfiguration.getGlobalMapFile()), ObjectNode.class);
     }
 
     public void initFileBuilder(String sigmaRulePath, ObjectNode sigmaRule) throws IOException {
 
         // Get files in Maps Folder Path
-        Path sigmaMapFolderPath = Paths.get("./src/main/resources/SigmaMaps/");
+        Path sigmaMapFolderPath = Paths.get(nybbleAnalyticsConfiguration.getSigmaMapsFolder());
 
         // Get the file name to create mapping file later.
         String sigmaFileName = Paths.get(sigmaRulePath).getFileName().toString().replaceAll("\\.yml", ".json");
@@ -176,7 +178,7 @@ public class SigmaMappingFileBuilder {
 
     public void deleteMappingFile(String sigmaRuleFile) {
 
-        Path sigmaMapFolderPath = Paths.get("./src/main/resources/SigmaMaps/");
+        Path sigmaMapFolderPath = Paths.get(nybbleAnalyticsConfiguration.getSigmaMapsFolder());
 
         File sigmaRuleMapPath = new File(sigmaMapFolderPath.toString()+"/"+sigmaRuleFile.replaceAll("\\.yml", ".json"));
 
