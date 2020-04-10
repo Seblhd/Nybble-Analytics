@@ -21,18 +21,24 @@ import org.apache.flink.streaming.connectors.elasticsearch7.ElasticsearchSink;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.util.serialization.JSONKeyValueDeserializationSchema;
 import org.apache.http.HttpHost;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.KafkaAdminClient;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.Requests;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class NybbleAnalytics {
 
 	private static DateFormat esIndexFormat = new SimpleDateFormat("yyyy-MM-dd");
 	private static FlinkKafkaConsumer<ObjectNode> securityLogsConsumer;
+	private static Integer totalKafkaTopicPartitions = 0;
 
 	public static void main(String[] args) throws Exception {
 		// set up the streaming execution environment
@@ -46,6 +52,9 @@ public class NybbleAnalytics {
 		kafkaProperties.setProperty("bootstrap.servers", nybbleAnalyticsConfiguration.getKafkaBootstrapServers());
 		kafkaProperties.setProperty("group.id", nybbleAnalyticsConfiguration.getKafkaGroupId());
 
+		// Create a Kafka Admin CLient
+		AdminClient kafkaAdminClient = AdminClient.create(kafkaProperties);
+
 		// Create a Kafka consumer where topic is "windows-logs", using JSON Deserialization schema and properties provided above. Read from the beginning.
 		JSONKeyValueDeserializationSchema logsSchema = new JSONKeyValueDeserializationSchema(false);
 
@@ -54,15 +63,61 @@ public class NybbleAnalytics {
 				nybbleAnalyticsConfiguration.getKafkaTopicsPattern() == null) {
 			// Get topics from list.
 			securityLogsConsumer = new FlinkKafkaConsumer(nybbleAnalyticsConfiguration.getKafkaTopicsName(), logsSchema, kafkaProperties);
+			// Get number of partitions per topic and add to total number of partitions for all topics.
+			nybbleAnalyticsConfiguration.getKafkaTopicsName().forEach(topic -> {
+				try {
+					int topicSize = kafkaAdminClient.describeTopics(nybbleAnalyticsConfiguration.getKafkaTopicsName()).values().get(topic).get().partitions().size();
+					totalKafkaTopicPartitions += topicSize;
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				} catch (ExecutionException e) {
+					e.printStackTrace();
+				}
+			});
 		} else if (nybbleAnalyticsConfiguration.getKafkaTopicsName() == null &&
 				nybbleAnalyticsConfiguration.getKafkaTopicsPattern() != null) {
 			// Compile pattern and autodiscover topics from pattern.
 			securityLogsConsumer = new FlinkKafkaConsumer(java.util.regex.Pattern.compile(nybbleAnalyticsConfiguration.getKafkaTopicsPattern()), logsSchema, kafkaProperties);
+			// Get number of partitions per topic and add to total number of partitions for all topics.
+
+			// Get list of all topics to find corresponding pattern ones and count partitions.
+			Set<String> kafkaTopics = kafkaAdminClient.listTopics().names().get();
+			ArrayList<String> foundTopics = new ArrayList<>();
+
+			kafkaTopics.forEach(topics -> {
+				Matcher topicPattern = Pattern.compile(nybbleAnalyticsConfiguration.getKafkaTopicsPattern()).matcher(topics);
+
+				while (topicPattern.find()) {
+					foundTopics.add(topicPattern.group(0));
+				}
+			});
+
+			foundTopics.forEach(topic -> {
+				try {
+					int topicSize = kafkaAdminClient.describeTopics(foundTopics).values().get(topic).get().partitions().size();
+					totalKafkaTopicPartitions += topicSize;
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				} catch (ExecutionException e) {
+					e.printStackTrace();
+				}
+			});
 		} else if (nybbleAnalyticsConfiguration.getKafkaTopicsName() != null &&
 				nybbleAnalyticsConfiguration.getKafkaTopicsPattern() != null) {
 			// Topic list and topics pattern has both been provided. By default, use topic list.
 			System.out.println("Topic list and topics pattern have both been provided. By default, topic list is used.");
 			securityLogsConsumer = new FlinkKafkaConsumer(nybbleAnalyticsConfiguration.getKafkaTopicsName(), logsSchema, kafkaProperties);
+			// Get number of partitions per topic and add to total number of partitions for all topics.
+			nybbleAnalyticsConfiguration.getKafkaTopicsName().forEach(topic -> {
+				try {
+					int topicSize = kafkaAdminClient.describeTopics(nybbleAnalyticsConfiguration.getKafkaTopicsName()).values().get(topic).get().partitions().size();
+					totalKafkaTopicPartitions += topicSize;
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				} catch (ExecutionException e) {
+					e.printStackTrace();
+				}
+			});
 		}
 
 		switch (nybbleAnalyticsConfiguration.getStartPosition()) {
