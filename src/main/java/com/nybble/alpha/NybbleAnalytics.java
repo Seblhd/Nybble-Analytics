@@ -32,6 +32,7 @@ import java.util.*;
 public class NybbleAnalytics {
 
 	private static DateFormat esIndexFormat = new SimpleDateFormat("yyyy-MM-dd");
+	private static FlinkKafkaConsumer<ObjectNode> securityLogsConsumer;
 
 	public static void main(String[] args) throws Exception {
 		// set up the streaming execution environment
@@ -47,8 +48,41 @@ public class NybbleAnalytics {
 
 		// Create a Kafka consumer where topic is "windows-logs", using JSON Deserialization schema and properties provided above. Read from the beginning.
 		JSONKeyValueDeserializationSchema logsSchema = new JSONKeyValueDeserializationSchema(false);
-		FlinkKafkaConsumer<ObjectNode> windowsLogsConsumer = new FlinkKafkaConsumer(nybbleAnalyticsConfiguration.getKafkaTopicName(), logsSchema, kafkaProperties);
-		windowsLogsConsumer.setStartFromEarliest();
+
+		//Check if topic list is pattern-based or is a list of topics.
+		if (nybbleAnalyticsConfiguration.getKafkaTopicsName() != null &&
+				nybbleAnalyticsConfiguration.getKafkaTopicsPattern() == null) {
+			// Get topics from list.
+			securityLogsConsumer = new FlinkKafkaConsumer(nybbleAnalyticsConfiguration.getKafkaTopicsName(), logsSchema, kafkaProperties);
+		} else if (nybbleAnalyticsConfiguration.getKafkaTopicsName() == null &&
+				nybbleAnalyticsConfiguration.getKafkaTopicsPattern() != null) {
+			// Compile pattern and autodiscover topics from pattern.
+			securityLogsConsumer = new FlinkKafkaConsumer(java.util.regex.Pattern.compile(nybbleAnalyticsConfiguration.getKafkaTopicsPattern()), logsSchema, kafkaProperties);
+		} else if (nybbleAnalyticsConfiguration.getKafkaTopicsName() != null &&
+				nybbleAnalyticsConfiguration.getKafkaTopicsPattern() != null) {
+			// Topic list and topics pattern has both been provided. By default, use topic list.
+			System.out.println("Topic list and topics pattern have both been provided. By default, topic list is used.");
+			securityLogsConsumer = new FlinkKafkaConsumer(nybbleAnalyticsConfiguration.getKafkaTopicsName(), logsSchema, kafkaProperties);
+		}
+
+		switch (nybbleAnalyticsConfiguration.getStartPosition()) {
+			case "setStartFromEarliest":
+				securityLogsConsumer.setStartFromEarliest();
+				break;
+			case "setStartFromLatest":
+				securityLogsConsumer.setStartFromLatest();
+				break;
+			case "setStartFromGroupOffsets":
+				securityLogsConsumer.setStartFromGroupOffsets();
+				break;
+			case "setStartFromTimestamp":
+				if (nybbleAnalyticsConfiguration.getStartEpochTimestamp() != null) {
+					securityLogsConsumer.setStartFromTimestamp(nybbleAnalyticsConfiguration.getStartEpochTimestamp());
+				} else {
+					System.out.println("Epoch timestamp in millisecond must be set to use start position from timestamp.");
+				}
+				break;
+		}
 
 		// Set up ElasticSearch environment
 		List<HttpHost> httpHosts = new ArrayList<>();
@@ -113,7 +147,7 @@ public class NybbleAnalytics {
 		sigmaRuleSourceStream.print();
 
 		// Create Security Event Stream (From Kafka Stream)
-		DataStream<ObjectNode> securityEventsStream = env.addSource(windowsLogsConsumer)
+		DataStream<ObjectNode> securityEventsStream = env.addSource(securityLogsConsumer)
 				.map(new MapFunction<ObjectNode, ObjectNode>() {
 					@Override
 					public ObjectNode map(ObjectNode eventNodes) throws Exception {
