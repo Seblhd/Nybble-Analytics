@@ -1,0 +1,13 @@
+{
+  "id" : "0a98a10c-685d-4ab0-bddc-b6bdd1d48444",
+  "map" : {
+    "detection" : {
+      "dest_port" : "destination.port"
+    },
+    "fields" : {
+      "c_ip" : "client.ip",
+      "dest_ip" : "destination.ip",
+      "dest_port" : "destination.port"
+    }
+  }
+}

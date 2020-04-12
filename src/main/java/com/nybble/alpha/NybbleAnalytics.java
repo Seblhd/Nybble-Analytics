@@ -22,7 +22,6 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.util.serialization.JSONKeyValueDeserializationSchema;
 import org.apache.http.HttpHost;
 import org.apache.kafka.clients.admin.AdminClient;
-import org.apache.kafka.clients.admin.KafkaAdminClient;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.Requests;
 import java.io.IOException;
@@ -102,6 +101,10 @@ public class NybbleAnalytics {
 					e.printStackTrace();
 				}
 			});
+
+			//if (totalKafkaTopicPartitions <= env.getParallelism()) {
+			//	securityLogsConsumer.getRuntimeContext().getExecutionConfig().setParallelism(totalKafkaTopicPartitions);
+			//}
 		} else if (nybbleAnalyticsConfiguration.getKafkaTopicsName() != null &&
 				nybbleAnalyticsConfiguration.getKafkaTopicsPattern() != null) {
 			// Topic list and topics pattern has both been provided. By default, use topic list.

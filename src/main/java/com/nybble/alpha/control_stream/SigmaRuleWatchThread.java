@@ -1,5 +1,6 @@
 package com.nybble.alpha.control_stream;
 
+import com.nybble.alpha.alert_engine.LogSourceMatcher;
 import com.nybble.alpha.event_stream.EventStreamTrigger;
 import com.nybble.alpha.event_stream.MultipleEventProcess;
 import com.nybble.alpha.rule_engine.MultiYamlConverter;
@@ -113,8 +114,9 @@ public class SigmaRuleWatchThread implements Runnable {
             updateSigmaLogSourceList();
 
         } else if (watchEventKind.equals("ENTRY_DELETE")) {
-            // Remove entry with Sigma Rule ID as key
-            //sigmaRuleMap.remove(ruleHash);
+            // Retrieve Sigma Rule Node from SaveStateMap and call rule delete from LogSourceMatcher.
+            new LogSourceMatcher().ruleDeletion(sigmaRuleSaveStateMap.get(ruleHash));
+            // Remove entry with Sigma Rule Hash as key
             sigmaRuleSaveStateMap.remove(ruleHash);
             // Update Sigma Log Source list in case of old Log Source from deleted rule(s)
             updateSigmaLogSourceList();

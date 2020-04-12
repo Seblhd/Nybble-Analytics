@@ -43,4 +43,21 @@ public class LogSourceMatcher extends RichCoFlatMapFunction<ObjectNode, ObjectNo
             collector.collect(Tuple2.of(eventNodes, controlLogSourceMap.get(eventNodes.get("logsource"))));
         }
     }
+
+    public void ruleDeletion (ObjectNode sigmaRule) {
+
+        // Get logSourceNode from Sigma Rule to be deleted.
+        ObjectNode logSourceNode = sigmaRule.get("rule").get(0).get("logsource").deepCopy();
+
+        // Retrieve corresponding ArrayList in which the rule is stored.
+        ArrayList<ObjectNode> mapControlNodesList = controlLogSourceMap.get(logSourceNode);
+
+        // Remove rule from ArrayList
+        mapControlNodesList.remove(sigmaRule);
+
+        // Update LogSource Map after rule deletion from Array.
+        controlLogSourceMap.replace(logSourceNode, mapControlNodesList);
+
+        System.out.println("Rule : " + sigmaRule.get("ruletitle").toString() + " with ID : " + sigmaRule.get("ruleid").toString() + " has been deleted.");
+    }
 }
