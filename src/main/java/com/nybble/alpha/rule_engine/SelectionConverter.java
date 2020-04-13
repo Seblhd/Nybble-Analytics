@@ -4,6 +4,8 @@ import com.nybble.alpha.NybbleAnalyticsConfiguration;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.log4j.Logger;
+
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,6 +28,7 @@ public class SelectionConverter {
     private final static Map<String, ObjectNode> sigmaFieldsMappingMap = new HashMap<>();
     private static ObjectMapper jsonMapper = new ObjectMapper();
     private static NybbleAnalyticsConfiguration nybbleAnalyticsConfiguration = new NybbleAnalyticsConfiguration();
+    private static Logger ruleEngineLogger = Logger.getLogger("ruleEngineFile");
 
     // Map Sigma field to ECS field and convert non-array selection field as JsonPath
     String fieldConvert(String selectionKey, JsonNode selectionValue, String currentRuleId) throws InterruptedException, IOException {
@@ -292,7 +295,8 @@ public class SelectionConverter {
                     // Just break because base64 values has been prepared before.
                     break;
                 default:
-                    System.out.println("Value modifiers \"" + transformationOperators[i] + "\" operator is invalid or not yet supported");
+                    ruleEngineLogger.warn("Transformation ignored. Value modifiers \"" + transformationOperators[i] + "\" is invalid or not yet supported. Please check supported Transformations in the documentation.");
+                    System.out.println("Value modifiers \"" + transformationOperators[i] + "\" is invalid or not yet supported. Please check supported Transformations in the documentation.");
                     break;
             }
         }
@@ -306,9 +310,11 @@ public class SelectionConverter {
                 ObjectNode currentRuleMapNode = sigmaFieldsMappingMap.get(mapRuleId);
                 selectionKey = currentRuleMapNode.get("map").get("detection").get(selectionKey).asText();
             } catch (Exception e) {
+                ruleEngineLogger.warn("No corresponding field found in Mapping file for \"" + selectionKey + "\" for rule with ID : " + mapRuleId);
                 System.out.println("No corresponding field found in Mapping file for \"" + selectionKey + "\" for rule with ID : " + mapRuleId);
             }
         } else {
+            ruleEngineLogger.info("No mapping file found for rule with ID : " + mapRuleId + ". Hold during mapping file creation...");
             System.out.println("No mapping file found for rule with ID : " + mapRuleId + ". Hold during mapping file creation.");
         }
 
@@ -351,6 +357,8 @@ public class SelectionConverter {
             sigmaFieldsMappingMap.put(sigmaMapNode.get("id").toString(), sigmaMapNode);
 
         } catch (Throwable e) {
+            ruleEngineLogger.error(e.getMessage() + ". Sigma Map file for RuleID : " + currentRuleId + "is missing." +
+                    " Sigma Map file are automatically created at Nybble Analytcis start or can be manually created in Sigma Maps folder.");
             System.out.println("ERROR: " + e.getMessage() + ". Sigma Map file for RuleID : " + currentRuleId + "is missing.");
         }
     }

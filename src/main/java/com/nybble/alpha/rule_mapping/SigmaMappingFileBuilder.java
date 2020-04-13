@@ -6,6 +6,7 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMap
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectReader;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +24,8 @@ public class SigmaMappingFileBuilder {
     private static ObjectNode globalFieldMapping = jsonMapper.createObjectNode();
     private static ObjectNode sigmaMappingNode = fileWriter.createObjectNode();
     private NybbleAnalyticsConfiguration nybbleAnalyticsConfiguration = new NybbleAnalyticsConfiguration();
+    private static Logger rulesMappingLogger = Logger.getLogger("ruleMappingFile");
+    private String loggingRuleID;
 
 
     public SigmaMappingFileBuilder() throws IOException {
@@ -34,6 +37,9 @@ public class SigmaMappingFileBuilder {
 
         // Get files in Maps Folder Path
         Path sigmaMapFolderPath = Paths.get(nybbleAnalyticsConfiguration.getSigmaMapsFolder());
+
+        // Get RuleID for logging
+        this.loggingRuleID = sigmaRule.get("id").toString();
 
         // Get the file name to create mapping file later.
         String sigmaFileName = Paths.get(sigmaRulePath).getFileName().toString().replaceAll("\\.yml", ".json");
@@ -50,6 +56,9 @@ public class SigmaMappingFileBuilder {
             ObjectNode sigmaMappingFile = createMapFile(sigmaRule);
             // Write SigmaMappingFile content in JSON file.
             fileWriter.writeValue(sigmaJsonMapFile, sigmaMappingFile);
+
+            rulesMappingLogger.info("Mapping file \"" + sigmaFileName + "\" has been created.");
+
         } else if (sigmaJsonMapFile.exists() && sigmaRule.has("action")) {
             if (sigmaRule.get("action").asText().equals("global")) {
 
@@ -66,6 +75,8 @@ public class SigmaMappingFileBuilder {
 
                 // Write multiMappingFile content in JSON file.
                 fileWriter.writeValue(sigmaJsonMapFile, multiMappingNode);
+
+                rulesMappingLogger.info("Mapping file \"" + sigmaFileName + "\" has been updated.");
             }
         }
     }
@@ -199,6 +210,8 @@ public class SigmaMappingFileBuilder {
                     // Add field for fields to mapping file
                     sigmaMappingNode.with("map").set("fields", fieldFieldsNode);
                 } else {
+                    rulesMappingLogger.warn("Map creation : Invalid format for field \"fields\" in rule with ID \""+ sigmaRule.get("id") +"\", must be a List in Sigma Rule." +
+                            " Useful fields will not be append to converted rule in Control Stream and fields will be missing in alerts.");
                     System.out.println("RuleID " + sigmaRule.get("id") + " : Invalid format for field \"fields\", must be a List in Sigma Rule");
                 }
             }
@@ -213,6 +226,7 @@ public class SigmaMappingFileBuilder {
         File sigmaRuleMapPath = new File(sigmaMapFolderPath.toString()+"/"+sigmaRuleFile.replaceAll("\\.yml", ".json"));
 
         // Delete the JSON Mapping File responding to Sigma Rule.
+        rulesMappingLogger.info("Map creation : Mapping file \"" + sigmaRuleMapPath.getName() + "\" has been deleted because corresponding rule has been deleted from Sigma Rules folder.");
         sigmaRuleMapPath.delete();
     }
 
@@ -220,7 +234,10 @@ public class SigmaMappingFileBuilder {
         try {
             ruleFieldMap = globalFieldMapping.get("map").get(ruleFieldMap).asText();
         } catch (Exception e) {
-            System.out.println("No corresponding field found in Mapping file for \"" + ruleFieldMap + "\" during Map file initialization. " +
+            rulesMappingLogger.warn("Map creation : No corresponding field found in Mapping file for \"" + ruleFieldMap + "\" " +
+                    "for rule with ID "+ loggingRuleID +" during Map file initialization." +
+                    " Apply default with mapping field 'message', please modify mapping to a valid value to ensure rule trigger." );
+            System.out.println("Map creation : No corresponding field found in Mapping file for \"" + ruleFieldMap + "\" during Map file initialization. " +
                     "Apply default with mapping field 'message'. ");
             ruleFieldMap = "message";
         }

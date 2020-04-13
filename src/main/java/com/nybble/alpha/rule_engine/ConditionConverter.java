@@ -4,6 +4,7 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,10 +17,14 @@ public class ConditionConverter {
 
     private static ObjectMapper jsonMapper = new ObjectMapper();
     private ObjectNode aggMappingNode;
+    private static Logger ruleEngineLogger = Logger.getLogger("ruleEngineFile");
+    private String currentRuleID;
 
     public ConditionConverter(String currrentRuleID) throws IOException {
         // Get MappingNode for current rule to map fields in aggregation if exists.
         aggMappingNode = new SelectionConverter().getFieldsMappingMap(currrentRuleID);
+        // Store current rule ID for logging.
+        this.currentRuleID = currrentRuleID;
     }
 
     public ObjectNode conditionConvert(JsonNode conditions) {
@@ -156,6 +161,7 @@ public class ConditionConverter {
         try {
             selectionKey = aggMappingNode.get("map").get("detection").get(selectionKey).asText();
         } catch (Exception e) {
+            ruleEngineLogger.warn("Aggregation field mapping : No corresponding field found in Mapping file during condition conversion for field \"" + selectionKey + "\" for rule with ID : " + currentRuleID);
             System.out.println("No corresponding field found in Mapping file for \"" + selectionKey + "\"");
         }
 

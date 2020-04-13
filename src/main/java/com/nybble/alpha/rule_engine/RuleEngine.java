@@ -6,6 +6,8 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.log4j.Logger;
+
 import java.util.*;
 
 
@@ -30,6 +32,8 @@ public class RuleEngine {
     private static List fieldValueList = new ArrayList<>();
     private static String mappedField;
     private static String jsonPathRule;
+    private static Logger ruleEngineLogger = Logger.getLogger("ruleEngineFile");
+    private String loggingRuleID;
 
     public ObjectNode RuleInit(ObjectNode sigmaJsonRule) throws Exception {
 
@@ -37,6 +41,9 @@ public class RuleEngine {
 
         // Retrieve the current RuleID
         String currentRuleId = sigmaJsonRule.get("id").toString();
+
+        // Retrieve ruleID for logging
+        this.loggingRuleID = sigmaJsonRule.get("id").toString();
 
         // Iterate on "Detection field" to retrieve "Selection field(s)" and "Condition field"
         Iterator<Map.Entry<String, JsonNode>> sigmaDetectionField = sigmaJsonRule.get("detection").fields();
@@ -226,6 +233,8 @@ public class RuleEngine {
             }
             tagsList.forEach(tagsArray::add);
         } else {
+            ruleEngineLogger.warn("Rule creation : Invalid format for field \"tags\" in rule with ID \"" + loggingRuleID + "\", must be a List in Sigma Rule." +
+                    " Tags will not be append to converted rule in Control Stream and tags will be missing in alerts.");
             System.out.println("Invalid format for field \"tags\", must be a List in Sigma Rule");
         }
 
@@ -253,6 +262,8 @@ public class RuleEngine {
             mappedFieldList.forEach(fieldsArray::add);
 
         } else {
+            ruleEngineLogger.warn("Rule creation : Invalid format for field \"fields\" in rule with ID \"" + loggingRuleID + "\", must be a List in Sigma Rule." +
+                    " Useful fields will not be append to converted rule in Control Stream and fields will be missing in alerts.");
             System.out.println("Invalid format for field \"fields\", must be a List in Sigma Rule");
         }
 
