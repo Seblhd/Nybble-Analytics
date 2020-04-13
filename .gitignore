@@ -1,3 +1,4 @@
 .idea/
 target/
 nybbleanalytics.iml
+src/main/resources/logs/
