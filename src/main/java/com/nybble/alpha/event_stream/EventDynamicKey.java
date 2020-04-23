@@ -3,10 +3,12 @@ package com.nybble.alpha.event_stream;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.log4j.Logger;
 
 public class EventDynamicKey implements KeySelector<ObjectNode, ObjectNode> {
 
     private static ObjectMapper jsonMapper = new ObjectMapper();
+    private static Logger eventStreamLogger = Logger.getLogger("eventsStreamFile");
 
     @Override
     public ObjectNode getKey(ObjectNode eventNode) {
@@ -34,6 +36,8 @@ public class EventDynamicKey implements KeySelector<ObjectNode, ObjectNode> {
         } else {
             // If event has none of "Category" or "Product" fields
             // Then return an empty ObjectNode.
+            eventStreamLogger.warn("Log source fields are missing. At least one of logsource.category or logsource.product is mandatory to match events against rule.\n" +
+                    " Please review the source configuration for the following events : " + eventNode.toString());
             return logSourceKey;
         }
     }

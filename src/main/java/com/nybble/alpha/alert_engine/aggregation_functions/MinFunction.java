@@ -8,6 +8,7 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.log4j.Logger;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -27,6 +28,7 @@ public class MinFunction {
     private Configuration jsonPathConfig = Configuration.defaultConfiguration()
             .addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL)
             .addOptions(Option.SUPPRESS_EXCEPTIONS);
+    private static Logger alertEngineLogger = Logger.getLogger("alertEngineFile");
 
     public MinFunction() {
         // Set timezone for alert creation timestamp
@@ -85,10 +87,15 @@ public class MinFunction {
                                 }
                             } catch (NumberFormatException nb) {
                                 System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Min function can only be apply on number values.");
+                                alertEngineLogger.error("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Sum function can only be apply on number values.");
                             }
                         } else {
                             System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() +
                                     "\" has not been found in event. Please check rule with id : " +
+                                    controlEventMatch.f1.get("ruleid").asText() + " and corresponding events.");
+
+                            alertEngineLogger.warn("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() +
+                                    "\" has not been found in event. Please check rule with id : "  +
                                     controlEventMatch.f1.get("ruleid").asText() + " and corresponding events.");
                         }
 
@@ -122,15 +129,25 @@ public class MinFunction {
                             fieldByGroupMinMap.put(fieldByGroupMinNode, aggregationTuple);
                         } catch (NumberFormatException nb) {
                             System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Min function can only be apply on number values.");
+                            alertEngineLogger.error("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Sum function can only be apply on number values.");
                         }
                     } else {
                         System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() +
                                 "\" has not been found in event. Please check rule with id : " +
                                 controlEventMatch.f1.get("ruleid").asText() + " and corresponding events.");
+
+                        alertEngineLogger.warn("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() +
+                                "\" has not been found in event. Please check rule with id : "  +
+                                controlEventMatch.f1.get("ruleid").asText() + " and corresponding events.");
                     }
                 }
             } else {
                 System.out.println("\"group-field\":\"" + aggregationNode.get("groupfield").asText() +
+                        "\" has not been found in event. Please check rule with id : " +
+                        controlEventMatch.f1.get("ruleid").asText() + " and corresponding events.");
+
+
+                alertEngineLogger.warn("\"group-field\":\"" + aggregationNode.get("groupfield").asText() +
                         "\" has not been found in event. Please check rule with id : " +
                         controlEventMatch.f1.get("ruleid").asText() + " and corresponding events.");
             }
@@ -170,10 +187,15 @@ public class MinFunction {
                             }
                         } catch (NumberFormatException nb) {
                             System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Min function can only be apply on number values.");
+                            alertEngineLogger.error("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Sum function can only be apply on number values.");
                         }
                     } else {
                         System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() +
                                 "\" has not been found in event. Please check rule with id : " +
+                                controlEventMatch.f1.get("ruleid").asText() + " and corresponding events.");
+
+                        alertEngineLogger.warn("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() +
+                                "\" has not been found in event. Please check rule with id : "  +
                                 controlEventMatch.f1.get("ruleid").asText() + " and corresponding events.");
                     }
 
@@ -207,15 +229,21 @@ public class MinFunction {
                         fieldMinMap.put(fieldMinNode, aggregationTuple);
                     } catch (NumberFormatException nb) {
                         System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Min function can only be apply on number values.");
+                        alertEngineLogger.error("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() + "\" value is not a number. Sum function can only be apply on number values.");
                     }
                 } else {
                     System.out.println("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() +
                             "\" has not been found in event. Please check rule with id : " +
                             controlEventMatch.f1.get("ruleid").asText() + " and corresponding events.");
+
+                    alertEngineLogger.warn("\"aggfield\":\"" + aggregationNode.get("aggfield").asText() +
+                            "\" has not been found in event. Please check rule with id : "  +
+                            controlEventMatch.f1.get("ruleid").asText() + " and corresponding events.");
                 }
             }
         } else {
             System.out.println("Min aggregation function need at least \"aggfield\" to be set.");
+            alertEngineLogger.error("Min aggregation function need at least \"aggfield\" to be set.");
         }
 
         return collectEvent;

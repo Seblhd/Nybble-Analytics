@@ -9,6 +9,7 @@ import com.nybble.alpha.rule_engine.SelectionConverter;
 import com.nybble.alpha.rule_mapping.SigmaMappingFileBuilder;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.log4j.Logger;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 
@@ -31,6 +32,7 @@ public class SigmaRuleWatchThread implements Runnable {
     private static Integer ruleFileCount = 0;
     private static Map<String, ObjectNode> sigmaRuleMap = new HashMap<>();
     private static Map<String, ObjectNode> sigmaRuleSaveStateMap = new HashMap<>();
+    private static Logger controlStreamLogger = Logger.getLogger("controlStreamFile");
 
     private static ObjectMapper jsonMapper = new ObjectMapper();
     private static Yaml yaml = new Yaml(new SafeConstructor());
@@ -60,6 +62,8 @@ public class SigmaRuleWatchThread implements Runnable {
             }
         } catch (Exception ex) {
             System.out.println("Exception:" + ex.toString());
+
+            controlStreamLogger.error("Exception:" + ex.toString());
         }
     }
 
@@ -85,7 +89,7 @@ public class SigmaRuleWatchThread implements Runnable {
             EventStreamTrigger.setRuleBroadcastCount(ruleBroadcastCount);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            controlStreamLogger.error("Error while trying to retrieve Sigma Rules files.\n" + e.toString());
         }
 
         MultipleEventProcess.setSigmaLogSource(sigmaLogSourceList);
@@ -136,7 +140,7 @@ public class SigmaRuleWatchThread implements Runnable {
                 yamlDocuments.add(sigmaJsonObject);
             }
         } catch (Throwable e) {
-            System.out.println("ERROR: " + e.getMessage());
+            controlStreamLogger.error("Error while trying to retrieve Sigma Rules files.\n" + e.toString());
         }
 
         // If only 1 Yaml Document is in List then process as Single Documents YAML rule.
@@ -231,7 +235,7 @@ public class SigmaRuleWatchThread implements Runnable {
                         yamlDocuments.add(sigmaJsonObject);
                     }
                 } catch (Throwable e) {
-                    System.out.println("ERROR: " + e.getMessage());
+                    controlStreamLogger.error("Error while trying to retrieve Sigma Rules files.\n" + e.toString());
                 }
 
                 // If only 1 Yaml Document is in List then process as Single Documents YAML rule.
@@ -253,7 +257,7 @@ public class SigmaRuleWatchThread implements Runnable {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            controlStreamLogger.error("Error while trying to retrieve Sigma Rules files.\n" + e.toString());
         }
         // Update Sigma Source list.
         MultipleEventProcess.setSigmaLogSource(sigmaLogSourceList);

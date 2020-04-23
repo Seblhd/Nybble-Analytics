@@ -3,10 +3,12 @@ package com.nybble.alpha.control_stream;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.log4j.Logger;
 
 public class ControlDynamicKey implements KeySelector<ObjectNode, ObjectNode> {
 
     private static ObjectMapper jsonMapper = new ObjectMapper();
+    private static Logger controlStreamLogger = Logger.getLogger("controlStreamFile");
 
     @Override
     public ObjectNode getKey(ObjectNode controlNode) throws Exception {
@@ -34,6 +36,9 @@ public class ControlDynamicKey implements KeySelector<ObjectNode, ObjectNode> {
         } else {
             // If event has none of "Category" or "Product" fields
             // Then return an empty ObjectNode.
+            controlStreamLogger.warn("Log source fields are missing. At least one of logsource.category or logsource.product is mandatory to match events against rule.\n" +
+                    " Please review the following rule : " + controlNode.toString());
+
             return logSourceKey;
         }
     }
