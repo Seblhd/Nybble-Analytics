@@ -1,0 +1,14 @@
+{
+  "tags" : {
+    "C2-Domain" : {
+      "domain" : ["destination.registered_domain", "dns.answers.name", "dns.question.name", "dns.question.registered_domain", "server.registered_domain"],
+      "hostname" : ["dns.answers.name", "dns.question.name", "host.hostname"]
+    },
+    "C2-IP" : {
+      "ip-dst" : ["destination.address", "destination.ip", "server.address", "server.ip"]
+    },
+    "TOR-node" : {
+      "ip-dst" : ["destination.address", "destination.ip", "server.address", "server.ip"]
+    }
+  }
+}

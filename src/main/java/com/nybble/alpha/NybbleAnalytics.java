@@ -47,14 +47,15 @@ public class NybbleAnalytics {
 		// Get configuration from config file.
 		NybbleAnalyticsConfiguration nybbleAnalyticsConfiguration = new NybbleAnalyticsConfiguration();
 
-		new MispEnrichement();
+		new MispEnrichement().getAttributes("toto", "toto", "toto");
+		new MispEnrichement().setMispMapping();
 
 		// Set up Kafka environment
 		Properties kafkaProperties = new Properties();
 		kafkaProperties.setProperty("bootstrap.servers", nybbleAnalyticsConfiguration.getKafkaBootstrapServers());
 		kafkaProperties.setProperty("group.id", nybbleAnalyticsConfiguration.getKafkaGroupId());
 
-		// Create a Kafka Admin CLient
+		// Create a Kafka Admin Client
 		AdminClient kafkaAdminClient = AdminClient.create(kafkaProperties);
 
 		// Create a Kafka consumer where topic is "windows-logs", using JSON Deserialization schema and properties provided above. Read from the beginning.
