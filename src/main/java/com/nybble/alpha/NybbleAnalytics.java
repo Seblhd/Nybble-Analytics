@@ -4,6 +4,7 @@ import com.nybble.alpha.control_stream.ControlDynamicKey;
 import com.nybble.alpha.control_stream.MultipleRulesProcess;
 import com.nybble.alpha.control_stream.SigmaSourceFunction;
 import com.nybble.alpha.alert_engine.*;
+import com.nybble.alpha.event_enrichment.MispEnrichement;
 import com.nybble.alpha.event_stream.EventDynamicKey;
 import com.nybble.alpha.event_stream.EventStreamTrigger;
 import com.nybble.alpha.event_stream.EventWindowFunction;
@@ -45,6 +46,8 @@ public class NybbleAnalytics {
 
 		// Get configuration from config file.
 		NybbleAnalyticsConfiguration nybbleAnalyticsConfiguration = new NybbleAnalyticsConfiguration();
+
+		new MispEnrichement();
 
 		// Set up Kafka environment
 		Properties kafkaProperties = new Properties();

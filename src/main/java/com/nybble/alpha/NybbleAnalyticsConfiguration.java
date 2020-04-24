@@ -28,6 +28,11 @@ public class NybbleAnalyticsConfiguration {
     private String globalMapFile;
     private String sigmaRulesFolder;
     private String sigmaMapsFolder;
+    private Boolean mispEnrichmentFlag;
+    private String mispHost;
+    private String mispProto;
+    private String mispAutomationKey;
+    private String mispMapFile;
 
     public NybbleAnalyticsConfiguration() {
         try {
@@ -79,60 +84,69 @@ public class NybbleAnalyticsConfiguration {
             this.sigmaRulesFolder = nybbleAnalyticsConf.getString("rules.folder");
             this.sigmaMapsFolder = nybbleAnalyticsConf.getString("maps.folder");
 
+            // MISP parameters
+            if (nybbleAnalyticsConf.getString("misp.enrichment").equals("true")) {
+                this.mispEnrichmentFlag = true;
+            } else {
+                this.mispEnrichmentFlag = false;
+            }
+
+            this.mispHost = nybbleAnalyticsConf.getString("misp.host");
+
+            if (nybbleAnalyticsConf.getString("misp.ssl.enable").equals("true")) {
+                this.mispProto = "https";
+            } else {
+                this.mispProto = "http";
+            }
+
+            this.mispAutomationKey = nybbleAnalyticsConf.getString("misp.automation.key");
+            this.mispMapFile = nybbleAnalyticsConf.getString("misp.map");
+
+
         } catch (ConfigurationException cex) {
             cex.printStackTrace();
         }
     }
 
-    public String getKafkaBootstrapServersIp() {
-        return this.bootstrapServersIp;
-    }
+    public String getKafkaBootstrapServersIp() { return this.bootstrapServersIp; }
 
-    public String getKafkaBootstrapServersPort() {
-        return this.bootstrapServersPort;
-    }
+    public String getKafkaBootstrapServersPort() { return this.bootstrapServersPort; }
 
-    public String getKafkaBootstrapServers() {
-        return this.bootstrapServersIp + ":" + this.bootstrapServersPort;
-    }
+    public String getKafkaBootstrapServers() { return this.bootstrapServersIp + ":" + this.bootstrapServersPort; }
 
-    public String getKafkaGroupId() {
-        return this.kafkaGroupId;
-    }
+    public String getKafkaGroupId() { return this.kafkaGroupId; }
 
-    public List<String> getKafkaTopicsName() {
-        return this.topicsName;
-    }
+    public List<String> getKafkaTopicsName() { return this.topicsName; }
 
-    public String getKafkaTopicsPattern() {
-        return this.topicsPattern;
-    }
+    public String getKafkaTopicsPattern() { return this.topicsPattern; }
 
-    public String getStartPosition() {
-        return startPosition;
-    }
+    public String getStartPosition() { return startPosition; }
 
-    public Long getStartEpochTimestamp() {
-        return this.startEpochTimestamp;
-    }
+    public Long getStartEpochTimestamp() { return this.startEpochTimestamp; }
 
     public String getElasticsearchHost() { return elasticsearchHost; }
 
-    public Integer getElasticsearchPort() {
-        return elasticsearchPort;
-    }
+    public Integer getElasticsearchPort() { return elasticsearchPort; }
 
     public String getElasticsearchProto() { return elasticsearchProto; }
 
     public String getElasticsearchEventIndex() { return elasticsearchEventIndex; }
 
-    public String getElasticsearchAlertIndex() {
-        return elasticsearchAlertIndex;
-    }
+    public String getElasticsearchAlertIndex() { return elasticsearchAlertIndex; }
 
     public String getGlobalMapFile() { return globalMapFile; }
 
     public String getSigmaMapsFolder() { return sigmaMapsFolder; }
 
     public String getSigmaRulesFolder() { return sigmaRulesFolder; }
+
+    public Boolean getMispEnrichmentFlag() { return mispEnrichmentFlag; }
+
+    public String getMispHost() { return mispHost; }
+
+    public String getMispProto() { return mispProto; }
+
+    public String getMispAutomationKey() { return mispAutomationKey; }
+
+    public String getMispMapFile() { return mispMapFile; }
 }
