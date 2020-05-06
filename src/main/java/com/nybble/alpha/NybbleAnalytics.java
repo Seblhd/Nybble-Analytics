@@ -4,7 +4,8 @@ import com.nybble.alpha.control_stream.ControlDynamicKey;
 import com.nybble.alpha.control_stream.MultipleRulesProcess;
 import com.nybble.alpha.control_stream.SigmaSourceFunction;
 import com.nybble.alpha.alert_engine.*;
-import com.nybble.alpha.event_enrichment.MispEnrichement;
+import com.nybble.alpha.event_enrichment.EventEnrichment;
+import com.nybble.alpha.event_enrichment.MipsEnrichment;
 import com.nybble.alpha.event_stream.EventDynamicKey;
 import com.nybble.alpha.event_stream.EventStreamTrigger;
 import com.nybble.alpha.event_stream.EventWindowFunction;
@@ -22,9 +23,12 @@ import org.apache.flink.streaming.connectors.elasticsearch7.ElasticsearchSink;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.util.serialization.JSONKeyValueDeserializationSchema;
 import org.apache.http.HttpHost;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.Requests;
+import org.elasticsearch.client.RestClientBuilder;
+
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -47,8 +51,17 @@ public class NybbleAnalytics {
 		// Get configuration from config file.
 		NybbleAnalyticsConfiguration nybbleAnalyticsConfiguration = new NybbleAnalyticsConfiguration();
 
-		new MispEnrichement().getAttributes("toto", "toto", "toto");
-		new MispEnrichement().setMispMapping();
+		// Get Elasticsearch REST Client Timeout values
+		final Integer ES_REST_CON_TIMEOUT = nybbleAnalyticsConfiguration.getElasticsearchRestConTimeOut();
+		final Integer ES_REST_REQ_TIMEOUT = nybbleAnalyticsConfiguration.getElasticsearchRestReqTimeOut();
+		final Integer ES_REST_SCK_TIMEOUT = nybbleAnalyticsConfiguration.getElasticsearchRestSckTimeOut();
+
+		// Get Elasticsearch indexes name for Event and Alert indexes.
+		final String ES_EVENT_INDEX_NAME = nybbleAnalyticsConfiguration.getElasticsearchEventIndex();
+		final String ES_ALERT_INDEX_NAME = nybbleAnalyticsConfiguration.getElasticsearchAlertIndex();
+
+		// Set mapping for MISP enrichement.
+		new MipsEnrichment().setMispMapping();
 
 		// Set up Kafka environment
 		Properties kafkaProperties = new Properties();
@@ -71,9 +84,7 @@ public class NybbleAnalytics {
 				try {
 					int topicSize = kafkaAdminClient.describeTopics(nybbleAnalyticsConfiguration.getKafkaTopicsName()).values().get(topic).get().partitions().size();
 					totalKafkaTopicPartitions += topicSize;
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				} catch (ExecutionException e) {
+				} catch (InterruptedException | ExecutionException e) {
 					e.printStackTrace();
 				}
 			});
@@ -99,9 +110,7 @@ public class NybbleAnalytics {
 				try {
 					int topicSize = kafkaAdminClient.describeTopics(foundTopics).values().get(topic).get().partitions().size();
 					totalKafkaTopicPartitions += topicSize;
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				} catch (ExecutionException e) {
+				} catch (InterruptedException | ExecutionException e) {
 					e.printStackTrace();
 				}
 			});
@@ -119,9 +128,7 @@ public class NybbleAnalytics {
 				try {
 					int topicSize = kafkaAdminClient.describeTopics(nybbleAnalyticsConfiguration.getKafkaTopicsName()).values().get(topic).get().partitions().size();
 					totalKafkaTopicPartitions += topicSize;
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				} catch (ExecutionException e) {
+				} catch (InterruptedException | ExecutionException e) {
 					e.printStackTrace();
 				}
 			});
@@ -152,9 +159,6 @@ public class NybbleAnalytics {
 				nybbleAnalyticsConfiguration.getElasticsearchPort(),
 				nybbleAnalyticsConfiguration.getElasticsearchProto()));
 
-		String esEventIndexName = nybbleAnalyticsConfiguration.getElasticsearchEventIndex();
-		String esAlertIndexName = nybbleAnalyticsConfiguration.getElasticsearchAlertIndex();
-
 		// Create a ElasticSearch sink where index is "events" to store events from Kafka.
 		ElasticsearchSink.Builder<String> esSinkDataBuilder = new ElasticsearchSink.Builder<>(httpHosts, new ElasticsearchSinkFunction<String>() {
 			public IndexRequest createIndexRequest(String element) throws IOException {
@@ -162,7 +166,7 @@ public class NybbleAnalytics {
 				HashMap eventNode = mapper.readValue(element, HashMap.class);
 
 				return Requests.indexRequest()
-						.index(esEventIndexName + esIndexFormat.format(new Date()))
+						.index(ES_EVENT_INDEX_NAME + esIndexFormat.format(new Date()))
 						.source(eventNode);
 			}
 
@@ -183,7 +187,7 @@ public class NybbleAnalytics {
 				HashMap alertNode = mapper.readValue(element, HashMap.class);
 
 				return Requests.indexRequest()
-						.index(esAlertIndexName + alertNode.get("rule.status").toString() + "-" + esIndexFormat.format(new Date()))
+						.index(ES_ALERT_INDEX_NAME + alertNode.get("rule.status").toString() + "-" + esIndexFormat.format(new Date()))
 						.id(alertNode.get("alert.uid").toString())
 						.source(alertNode);
 			}
@@ -196,6 +200,29 @@ public class NybbleAnalytics {
 					e.printStackTrace();
 				}
 			}
+		});
+
+		// Configuration for the REST Client; Timeout values can be modified to avoid time out on Elasticsearch node with small amount of memory.
+		esSinkAlertBuilder.setRestClientFactory(restClientBuilder -> {
+			restClientBuilder.setRequestConfigCallback(new RestClientBuilder.RequestConfigCallback() {
+				@Override
+				public RequestConfig.Builder customizeRequestConfig(RequestConfig.Builder builder) {
+					return builder.setConnectTimeout(ES_REST_CON_TIMEOUT)
+							.setSocketTimeout(ES_REST_SCK_TIMEOUT)
+							.setConnectionRequestTimeout(ES_REST_SCK_TIMEOUT);
+				}
+			});
+		});
+
+		esSinkDataBuilder.setRestClientFactory(restClientBuilder -> {
+			restClientBuilder.setRequestConfigCallback(new RestClientBuilder.RequestConfigCallback() {
+				@Override
+				public RequestConfig.Builder customizeRequestConfig(RequestConfig.Builder builder) {
+					return builder.setConnectTimeout(ES_REST_CON_TIMEOUT)
+							.setSocketTimeout(ES_REST_SCK_TIMEOUT)
+							.setConnectionRequestTimeout(ES_REST_REQ_TIMEOUT);
+				}
+			});
 		});
 
 		// Configuration for the bulk requests; this instructs the sink to emit after every element, otherwise they would be buffered
@@ -215,7 +242,7 @@ public class NybbleAnalytics {
 					public ObjectNode map(ObjectNode eventNodes) throws Exception {
 						return eventNodes.get("value").deepCopy();
 					}
-				});
+				}).map(new EventEnrichment());
 
 		// Send Events to Elasticsearch
 		securityEventsStream.map(ObjectNode::toString).addSink(esSinkDataBuilder.build());
@@ -227,7 +254,7 @@ public class NybbleAnalytics {
 				.timeWindow(Time.days(1))
 				.trigger(new EventStreamTrigger())
 				.apply(new EventWindowFunction());
-		ruleEngineStream.print();
+		//ruleEngineStream.print();
 
 
 		// Create a Sigma Alert Stream containing events filtered from rules.

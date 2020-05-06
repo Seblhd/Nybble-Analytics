@@ -2,9 +2,9 @@ package com.nybble.alpha.event_enrichment;
 
 import com.nybble.alpha.NybbleAnalyticsConfiguration;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -17,13 +17,12 @@ import org.apache.http.util.EntityUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class MispEnrichement {
+public class MipsEnrichment {
 
     private String mispURL;
     private String mispAutomationKey;
@@ -31,11 +30,11 @@ public class MispEnrichement {
     private ObjectNode mispAttributesNode = jsonMapper.createObjectNode();
     private ObjectNode httpDataNode = jsonMapper.createObjectNode();
     private CloseableHttpClient mispClient = HttpClients.createDefault();
-    // Get configuration from config file.
     private NybbleAnalyticsConfiguration nybbleAnalyticsConfiguration = new NybbleAnalyticsConfiguration();
-    private HashMap<String, ArrayList<Tuple2<String, String>>> mispMappingMap;
+    private HashMap<String, ArrayList<Tuple2<String, String>>> mispMappingMap = new HashMap<>();
+    private ArrayList<String> srcEnrichmentFieldArray = new ArrayList<>();
 
-    public MispEnrichement() {
+    public MipsEnrichment() {
 
         // Build MISP URL with information from config.properties
         String mispHost = nybbleAnalyticsConfiguration.getMispHost();
@@ -43,6 +42,7 @@ public class MispEnrichement {
         String mispGetAttributes = "/attributes/restSearch";
         this.mispURL = mispProtocol +"://"+ mispHost + mispGetAttributes;
         this.mispAutomationKey = nybbleAnalyticsConfiguration.getMispAutomationKey();
+
     }
 
     public ObjectNode getAttributes(String mispEventTags, String mispAttributeType, String mispAttributeValue) throws IOException {
@@ -53,9 +53,9 @@ public class MispEnrichement {
         httpDataNode.removeAll();
 
         httpDataNode.put("returnFormat", "json");
-        httpDataNode.put("tags", "TOR-node");
-        httpDataNode.put("type", "ip-dst");
-        httpDataNode.put("value", "98.251.10.2400");
+        httpDataNode.put("tags", mispEventTags);
+        httpDataNode.put("type", mispAttributeType);
+        httpDataNode.put("value", mispAttributeValue);
 
         HttpUriRequest mispHttpRequest = RequestBuilder.post()
                 .setUri(mispURL)
@@ -84,8 +84,53 @@ public class MispEnrichement {
             // Get value of next MISP Tag
             Map.Entry<String, JsonNode> mispTagMap = mispMapIterator.next();
 
-            System.out.println("Current MISP Tag key : " + mispTagMap.getKey());
-            System.out.println("Current MISP Tag value : " + mispTagMap.getValue().toString());
+            Iterator<Map.Entry<String, JsonNode>> mispTypeIterator = mispTagMap.getValue().fields();
+
+            for (int x = 0; x < mispTagMap.getValue().size(); x++) {
+
+                Map.Entry<String, JsonNode> mispTypeMap = mispTypeIterator.next();
+
+                ArrayNode mispTypeMappingNode = (ArrayNode) jsonMapper.readTree(mispTypeMap.getValue().deepCopy().toString());
+
+                if (mispTypeMappingNode.isArray()) {
+                    mispTypeMappingNode.forEach(ecsField -> {
+
+                        // Add all ECS field from mapping file. this list wil be use to check which fields
+                        // from events need to be used for enrichment.
+                        if (!srcEnrichmentFieldArray.contains(ecsField.asText())) {
+                            srcEnrichmentFieldArray.add(ecsField.asText());
+                        }
+
+                        // Create entry in mispMappingMap HashMap to know which tags, type and value from event field to use for MISP request.
+                        // Each ECS field is associated with one or more MISP event tag and MISP attribute type.
+
+                        // Create a new tuple where f0 is MISP Event tag and f1 MISP Attribute Type.
+                        Tuple2<String, String> mispTagTypeTuple = new Tuple2<>();
+                        mispTagTypeTuple.setFields(mispTagMap.getKey(), mispTypeMap.getKey());
+
+                        if (mispMappingMap.containsKey(ecsField.asText())) {
+                            // Get the current ArrayList from mismMappingMap and add new tuple if not already existing and update mispMappingMap
+                            ArrayList<Tuple2<String, String>> mispTupleList = mispMappingMap.get(ecsField.asText());
+                            if (!mispTupleList.contains(mispTagTypeTuple)) {
+                                mispTupleList.add(mispTagTypeTuple);
+                                mispMappingMap.replace(ecsField.asText(), mispTupleList);
+                            }
+
+                        } else if (!mispMappingMap.containsKey(ecsField.asText())) {
+                            // Create a new ArrayList that will contains all MISP Event tag and Attribute type tuples.
+                            ArrayList<Tuple2<String, String>> mispTupleList = new ArrayList<>();
+                            mispTupleList.add(mispTagTypeTuple);
+
+                            // Add an entry in mispMappingMap HashMap with current ECS field as key and ArrayList of tuples as value.
+                            mispMappingMap.put(ecsField.asText(), mispTupleList);
+                        }
+                    });
+                }
+            }
         }
+
+        // When MISP Mapping file as been processed, set values for Flink Map Function.
+        FindEnrichableFields.setSrcEnrichmentFieldArray(srcEnrichmentFieldArray);
+        FindEnrichableFields.setMispMappingMap(mispMappingMap);
     }
 }

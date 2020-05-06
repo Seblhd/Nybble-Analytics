@@ -25,6 +25,9 @@ public class NybbleAnalyticsConfiguration {
     private String elasticsearchProto;
     private String elasticsearchEventIndex;
     private String elasticsearchAlertIndex;
+    private Integer elasticsearchRestReqTimeOut;
+    private Integer elasticsearchRestConTimeOut;
+    private Integer elasticsearchRestSckTimeOut;
     private String globalMapFile;
     private String sigmaRulesFolder;
     private String sigmaMapsFolder;
@@ -78,6 +81,9 @@ public class NybbleAnalyticsConfiguration {
             this.elasticsearchProto = nybbleAnalyticsConf.getString("elasticsearch.proto");
             this.elasticsearchEventIndex = nybbleAnalyticsConf.getString("elasticsearch.event.index");
             this.elasticsearchAlertIndex = nybbleAnalyticsConf.getString("elasticsearch.alert.index");
+            this.elasticsearchRestReqTimeOut = nybbleAnalyticsConf.getInt("elasticsearch.rest.request.timeout");
+            this.elasticsearchRestConTimeOut = nybbleAnalyticsConf.getInt("elasticsearch.rest.connect.timeout");
+            this.elasticsearchRestSckTimeOut = nybbleAnalyticsConf.getInt("elasticsearch.rest.socket.timeout");
 
             // Sigma Rules parameters
             this.globalMapFile = nybbleAnalyticsConf.getString("global.map");
@@ -133,6 +139,12 @@ public class NybbleAnalyticsConfiguration {
     public String getElasticsearchEventIndex() { return elasticsearchEventIndex; }
 
     public String getElasticsearchAlertIndex() { return elasticsearchAlertIndex; }
+
+    public Integer getElasticsearchRestReqTimeOut() { return elasticsearchRestReqTimeOut; }
+
+    public Integer getElasticsearchRestConTimeOut() { return elasticsearchRestConTimeOut; }
+
+    public Integer getElasticsearchRestSckTimeOut() { return elasticsearchRestSckTimeOut; }
 
     public String getGlobalMapFile() { return globalMapFile; }
 
