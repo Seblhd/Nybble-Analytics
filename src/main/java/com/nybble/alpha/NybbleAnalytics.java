@@ -256,7 +256,6 @@ public class NybbleAnalytics {
 				.apply(new EventWindowFunction());
 		//ruleEngineStream.print();
 
-
 		// Create a Sigma Alert Stream containing events filtered from rules.
 		DataStream<ObjectNode> alertStream = sigmaRuleSourceStream
 				.connect(ruleEngineStream)
