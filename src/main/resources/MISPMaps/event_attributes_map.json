@@ -5,10 +5,12 @@
       "hostname" : ["dns.answers.name", "dns.question.name", "host.hostname"]
     },
     "C2-IP" : {
-      "ip-dst" : ["destination.address", "destination.ip", "server.address", "server.ip"]
+      "ip-dst" : ["destination.address", "destination.ip", "server.address", "server.ip"],
+      "ip-src" : ["source.address", "source.ip", "client.address", "client.ip"]
     },
     "TOR-node" : {
-      "ip-dst" : ["destination.address", "destination.ip", "server.address", "server.ip"]
+      "ip-dst" : ["destination.address", "destination.ip", "server.address", "server.ip"],
+      "ip-src" : ["source.address", "source.ip", "client.address", "client.ip"]
     }
   }
 }

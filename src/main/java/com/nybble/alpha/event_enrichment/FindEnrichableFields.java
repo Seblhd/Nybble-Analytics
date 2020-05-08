@@ -9,6 +9,7 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.JsonProcessin
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.log4j.Logger;
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,9 +25,8 @@ public class FindEnrichableFields {
     private ObjectMapper jsonMapper = new ObjectMapper();
     private static ArrayList<String> srcEnrichmentFieldArray = new ArrayList<>();
     private static HashMap<String, ArrayList<Tuple2<String, String>>> mispMappingMap = new HashMap<>();
-    private Tuple3<String, String, String> mispRestSearchFields = new Tuple3<>();
-    private ArrayList<Tuple3<String, String, String>> enrichableFieldList = new ArrayList<>();
-    private static Logger ruleEngineLogger = Logger.getLogger("enrichmentEngineFile");
+    private static ArrayList<Tuple3<String, String, String>> enrichableFieldList = new ArrayList<>();
+    private static Logger enrichmentEngineLogger = Logger.getLogger("enrichmentEngineFile");
 
     public ArrayList<Tuple3<String, String, String>> getList (ObjectNode eventNode) {
 
@@ -46,6 +46,7 @@ public class FindEnrichableFields {
                 if (!searchFieldValue.isEmpty()) {
                     searchFieldValue.forEach(foundValue -> {
                         if (foundValue != null) {
+
                             // When value for a specific field is found, get information from MISP Map to create Tuple3.
                             // mispRestSearchFields Tuple3 will contains all information for the RestSearch request.
                             // f0 is : Event Tag
@@ -53,6 +54,8 @@ public class FindEnrichableFields {
                             // f2 is : Attribute Value
                             try {
                                 mispMappingMap.get(enrichmentField).forEach(MISPTuple2 -> {
+
+                                    Tuple3<String, String, String> mispRestSearchFields = new Tuple3<>();
                                     mispRestSearchFields.setFields(MISPTuple2.f0, MISPTuple2.f1, foundValue.toString());
 
                                     if (!enrichableFieldList.contains(mispRestSearchFields)) {
@@ -60,7 +63,7 @@ public class FindEnrichableFields {
                                     }
                                 });
                             } catch (NullPointerException nullField) {
-                                ruleEngineLogger.error("Field \"" + enrichmentField + "\" cannot be found in MISP Map whereas is in enrichable field list. Please review the JSON MISP Map for correction.");
+                                enrichmentEngineLogger.error("Enrichable fields list creation : Field \"" + enrichmentField + "\" cannot be found in MISP Map whereas is in enrichable field list. Please review the JSON MISP Map for correction.");
                             }
                         }
                     });
@@ -71,18 +74,14 @@ public class FindEnrichableFields {
 
         });
 
-        System.out.println("MISP enrichable field list is : " + enrichableFieldList);
-
         return enrichableFieldList;
     }
 
     public static void setSrcEnrichmentFieldArray(ArrayList<String> enrichFieldArray) {
         srcEnrichmentFieldArray = enrichFieldArray;
-        System.out.println("Src enrichement is : " + srcEnrichmentFieldArray);
     }
 
     public static void setMispMappingMap(HashMap<String, ArrayList<Tuple2<String, String>>> mispMap) {
         mispMappingMap = mispMap;
-        System.out.println("MISP mapping is : " + mispMappingMap);
     }
 }

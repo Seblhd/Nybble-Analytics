@@ -42,7 +42,6 @@ public class MipsEnrichment {
         String mispGetAttributes = "/attributes/restSearch";
         this.mispURL = mispProtocol +"://"+ mispHost + mispGetAttributes;
         this.mispAutomationKey = nybbleAnalyticsConfiguration.getMispAutomationKey();
-
     }
 
     public ObjectNode getAttributes(String mispEventTags, String mispAttributeType, String mispAttributeValue) throws IOException {
@@ -67,9 +66,20 @@ public class MipsEnrichment {
 
         CloseableHttpResponse mispResponse = mispClient.execute(mispHttpRequest);
 
-        System.out.println(EntityUtils.toString(mispResponse.getEntity()));
+        //System.out.println(EntityUtils.toString(mispResponse.getEntity()));
+
+        mispAttributesNode = jsonMapper.readTree(EntityUtils.toString(mispResponse.getEntity())).get("response").deepCopy();
+
+        System.out.println("MISP Response : " + mispAttributesNode);
 
         return mispAttributesNode;
+    }
+
+    public ObjectNode enrichEvent(ObjectNode eventNode, ObjectNode mispAttributesNode) {
+
+
+
+        return eventNode;
     }
 
     public void setMispMapping() throws IOException {
