@@ -29,15 +29,12 @@ public class EventEnrichment implements MapFunction<ObjectNode, ObjectNode> {
 
         if (publicDestIP || publicSrcIP) {
 
-            System.out.println("At least of of src or dst IP address is public.");
-
             if (eventNode.get("nybble.destination").get("ip_public").asBoolean()) {
 
                 enrichableFields = new FindEnrichableFields().getList(eventNode);
 
                 enrichableFields.forEach(mispRequest -> {
                     try {
-
                         ObjectNode mispAttributeNode = new MipsEnrichment().getAttributes(mispRequest.f0, mispRequest.f1, mispRequest.f2);
 
                         if (mispAttributeNode.get("Attribute").isEmpty()) {

@@ -72,6 +72,12 @@ public class MipsEnrichment {
             mispAttributesNode = jsonMapper.readTree(EntityUtils.toString(mispResponse.getEntity())).get("response").deepCopy();
         } catch (HttpHostConnectException httpHostConnectException) {
             enrichmentEngineLogger.error("MISP Response : " + httpHostConnectException);
+            ObjectNode emptyAttributeNode = jsonMapper.createObjectNode();
+            emptyAttributeNode.putArray("Attribute");
+
+            System.out.println("Empty Attribute Node is : " + emptyAttributeNode);
+
+            return emptyAttributeNode;
         }
 
         return mispAttributesNode;
