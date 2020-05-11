@@ -71,11 +71,10 @@ public class MipsEnrichment {
             CloseableHttpResponse mispResponse = mispClient.execute(mispHttpRequest);
             mispAttributesNode = jsonMapper.readTree(EntityUtils.toString(mispResponse.getEntity())).get("response").deepCopy();
         } catch (HttpHostConnectException httpHostConnectException) {
+            // If connection is refused or timed out, return an empty node.
             enrichmentEngineLogger.error("MISP Response : " + httpHostConnectException);
             ObjectNode emptyAttributeNode = jsonMapper.createObjectNode();
             emptyAttributeNode.putArray("Attribute");
-
-            System.out.println("Empty Attribute Node is : " + emptyAttributeNode);
 
             return emptyAttributeNode;
         }
