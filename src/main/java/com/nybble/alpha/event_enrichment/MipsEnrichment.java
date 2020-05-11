@@ -10,10 +10,12 @@ import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,6 +35,7 @@ public class MipsEnrichment {
     private NybbleAnalyticsConfiguration nybbleAnalyticsConfiguration = new NybbleAnalyticsConfiguration();
     private HashMap<String, ArrayList<Tuple2<String, String>>> mispMappingMap = new HashMap<>();
     private ArrayList<String> srcEnrichmentFieldArray = new ArrayList<>();
+    private static Logger enrichmentEngineLogger = Logger.getLogger("enrichmentEngineFile");
 
     public MipsEnrichment() {
 
@@ -64,22 +67,71 @@ public class MipsEnrichment {
                 .setEntity(new StringEntity(jsonMapper.writeValueAsString(httpDataNode)))
                 .build();
 
-        CloseableHttpResponse mispResponse = mispClient.execute(mispHttpRequest);
-
-        //System.out.println(EntityUtils.toString(mispResponse.getEntity()));
-
-        mispAttributesNode = jsonMapper.readTree(EntityUtils.toString(mispResponse.getEntity())).get("response").deepCopy();
-
-        System.out.println("MISP Response : " + mispAttributesNode);
+        try {
+            CloseableHttpResponse mispResponse = mispClient.execute(mispHttpRequest);
+            mispAttributesNode = jsonMapper.readTree(EntityUtils.toString(mispResponse.getEntity())).get("response").deepCopy();
+        } catch (HttpHostConnectException httpHostConnectException) {
+            enrichmentEngineLogger.error("MISP Response : " + httpHostConnectException);
+        }
 
         return mispAttributesNode;
     }
 
-    public ObjectNode enrichEvent(ObjectNode eventNode, ObjectNode mispAttributesNode) {
+    public ObjectNode enrichEvent(ObjectNode mispAttributesNode) {
 
+        // Create a Node that will contains information from MISP and then will be added to EventNode.
+        ObjectNode mispNode = jsonMapper.createObjectNode();
+        // Create an ArrayList that will contains all MISP Event ID where attribute value has been found.
+        ArrayList<String> mispEventIDList = new ArrayList<>();
+        // Create an ArrayList that will contains all unique MISP Category for the attribute value.
+        ArrayList<String> mispAttributeCategoryList = new ArrayList<>();
+        // Create an ArrayList that will contains all unique MISP Tags for the attribute value.
+        ArrayList<String> mispAttributeTagsList = new ArrayList<>();
 
+        for (int x = 0; x < mispAttributesNode.get("Attribute").size(); x++) {
 
-        return eventNode;
+            // Get each Event from MISP answer.
+            ObjectNode mispEvent = mispAttributesNode.get("Attribute").get(x).deepCopy();
+
+            // Add MISP Event ID from current Event.
+            if (mispEvent.has("event_id")) {
+                mispEventIDList.add(mispEvent.get("event_id").asText());
+            }
+
+            // Add MISP Attribute Category from current event.
+            if (mispEvent.has("category")) {
+                if(!mispAttributeCategoryList.contains(mispEvent.get("category").asText())) {
+                    mispAttributeCategoryList.add(mispEvent.get("category").asText());
+                }
+            }
+
+            // Add MISP Atrribute tags from current event.
+            if (mispEvent.has("Tag")) {
+                mispEvent.get("Tag").forEach(tag -> {
+                    if (!mispAttributeTagsList.contains(tag.get("name").asText())) {
+                        mispAttributeTagsList.add(tag.get("name").asText());
+                    }
+                });
+            }
+        }
+
+        // If ArrayList is not empty, convert to ArrayNode and then add to final mispNode.
+        if (!mispEventIDList.isEmpty()) {
+            ArrayNode mispEventIDNode = jsonMapper.valueToTree(mispEventIDList);
+            mispNode.putArray("misp.event.id").addAll(mispEventIDNode);
+        }
+
+        if (!mispAttributeCategoryList.isEmpty()) {
+            ArrayNode mispAttributeCategoryNode = jsonMapper.valueToTree(mispAttributeCategoryList);
+            mispNode.putArray("misp.attribute.category").addAll(mispAttributeCategoryNode);
+        }
+
+        if (!mispAttributeTagsList.isEmpty()) {
+            ArrayNode mispAttributeTagsNode = jsonMapper.valueToTree(mispAttributeTagsList);
+            mispNode.putArray("misp.attribute.tags").addAll(mispAttributeTagsNode);
+        }
+
+        return mispNode;
     }
 
     public void setMispMapping() throws IOException {

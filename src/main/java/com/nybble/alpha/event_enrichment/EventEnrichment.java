@@ -3,6 +3,7 @@ package com.nybble.alpha.event_enrichment;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
+import com.nybble.alpha.utils.JsonPathCheck;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,23 +19,17 @@ public class EventEnrichment implements MapFunction<ObjectNode, ObjectNode> {
     private static Boolean mispEnabledFlag = false;
     private static Logger enrichmentEngineLogger = Logger.getLogger("enrichmentEngineFile");
     private static ObjectMapper jsonMapper = new ObjectMapper();
+    private static JsonPathCheck jsonPathCheck = new JsonPathCheck();
 
     @Override
     public ObjectNode map(ObjectNode eventNode) throws Exception {
 
-        Configuration jsonPathConfig = Configuration.defaultConfiguration()
-                .addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL)
-                .addOptions(Option.SUPPRESS_EXCEPTIONS);
-
-        Boolean publicDestIP = JsonPath.using(jsonPathConfig)
-                .parse(jsonMapper.writeValueAsString(eventNode))
-                .read("$['nybble.destination']['ip_public']");
-
-        Boolean publicSrcIP = JsonPath.using(jsonPathConfig)
-                .parse(jsonMapper.writeValueAsString(eventNode))
-                .read("$['nybble.source']['ip_public']");
+        Boolean publicSrcIP = jsonPathCheck.getJsonBoolValue(eventNode, "$['nybble.source']['ip_public']");
+        Boolean publicDestIP = jsonPathCheck.getJsonBoolValue(eventNode, "$['nybble.destination']['ip_public']");
 
         if (publicDestIP || publicSrcIP) {
+
+            System.out.println("At least of of src or dst IP address is public.");
 
             if (eventNode.get("nybble.destination").get("ip_public").asBoolean()) {
 
@@ -42,7 +37,6 @@ public class EventEnrichment implements MapFunction<ObjectNode, ObjectNode> {
 
                 enrichableFields.forEach(mispRequest -> {
                     try {
-                        System.out.println("Request parameters are : " + mispRequest);
 
                         ObjectNode mispAttributeNode = new MipsEnrichment().getAttributes(mispRequest.f0, mispRequest.f1, mispRequest.f2);
 
@@ -52,7 +46,9 @@ public class EventEnrichment implements MapFunction<ObjectNode, ObjectNode> {
                                     "\" and tag \"" + mispRequest.f0 + "\" has not been found.");
                             // Put empty node in Redis to avoid search on MISP each time.
                         } else {
-
+                            ObjectNode mispNode = new MipsEnrichment().enrichEvent(mispAttributeNode);
+                            // Add information from MISP by merging mispNode and eventNode.
+                            eventNode.setAll(mispNode);
                         }
 
                     } catch (IOException e) {

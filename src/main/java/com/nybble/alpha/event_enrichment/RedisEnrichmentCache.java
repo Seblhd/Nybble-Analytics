@@ -1,4 +1,4 @@
 package com.nybble.alpha.event_enrichment;
 
-public class RedisEnrichment {
+public class RedisEnrichmentCache {
 }
