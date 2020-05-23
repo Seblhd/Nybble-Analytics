@@ -20,6 +20,16 @@ public class NybbleAnalyticsConfiguration {
     private String topicsPattern;
     private String startPosition;
     private Long startEpochTimestamp;
+    private String redisServerIp;
+    private Integer redisServerPort;
+    private Integer redisConnectionTimeOut;
+    private Long redisKeyExpire;
+    private Integer redisIoThreads;
+    private Integer redisComputeThreads;
+    private Integer redisPoolMaxWait;
+    private Boolean redisPoolTestOnBorrow;
+    private Boolean redisPoolTestOnReturn;
+    private Boolean redisPoolTestWhileIdle;
     private String elasticsearchHost;
     private Integer elasticsearchPort;
     private String elasticsearchProto;
@@ -28,6 +38,10 @@ public class NybbleAnalyticsConfiguration {
     private Integer elasticsearchRestReqTimeOut;
     private Integer elasticsearchRestConTimeOut;
     private Integer elasticsearchRestSckTimeOut;
+    private Integer elasticsearchEventBulkFlushMaxActions;
+    private Integer elasticsearchAlertBulkFlushMaxActions;
+    private Integer elasticsearchEventStreamParallelism;
+    private Integer elasticsearchAlertStreamParallelism;
     private String globalMapFile;
     private String sigmaRulesFolder;
     private String sigmaMapsFolder;
@@ -75,6 +89,18 @@ public class NybbleAnalyticsConfiguration {
                 this.startEpochTimestamp = null;
             }
 
+            // Redis parameters
+            this.redisServerIp = nybbleAnalyticsConf.getString("redis.server.host");
+            this.redisServerPort = nybbleAnalyticsConf.getInt("redis.server.port");
+            this.redisConnectionTimeOut = nybbleAnalyticsConf.getInt("redis.server.connection.timeout");
+            this.redisKeyExpire = nybbleAnalyticsConf.getLong("redis.key.expire");
+            this.redisIoThreads = nybbleAnalyticsConf.getInt("redis.io.threads");
+            this.redisComputeThreads = nybbleAnalyticsConf.getInt("redis.compute.threads");
+            this.redisPoolMaxWait = nybbleAnalyticsConf.getInt("redis.pool.maxwait");
+            this.redisPoolTestOnBorrow = nybbleAnalyticsConf.getBoolean("redis.pool.testonborrow");
+            this.redisPoolTestOnReturn = nybbleAnalyticsConf.getBoolean("redis.pool.testonreturn");
+            this.redisPoolTestWhileIdle = nybbleAnalyticsConf.getBoolean("redis.pool.testwhileidle");
+
             // Elasticsearch parameters
             this.elasticsearchHost = nybbleAnalyticsConf.getString("elasticsearch.host");
             this.elasticsearchPort = nybbleAnalyticsConf.getInt("elasticsearch.port");
@@ -84,6 +110,10 @@ public class NybbleAnalyticsConfiguration {
             this.elasticsearchRestReqTimeOut = nybbleAnalyticsConf.getInt("elasticsearch.rest.request.timeout");
             this.elasticsearchRestConTimeOut = nybbleAnalyticsConf.getInt("elasticsearch.rest.connect.timeout");
             this.elasticsearchRestSckTimeOut = nybbleAnalyticsConf.getInt("elasticsearch.rest.socket.timeout");
+            this.elasticsearchAlertBulkFlushMaxActions = nybbleAnalyticsConf.getInt("elasticsearch.alert.bulkflushmaxactions");
+            this.elasticsearchEventBulkFlushMaxActions = nybbleAnalyticsConf.getInt("elasticsearch.event.bulkflushmaxactions");
+            this.elasticsearchAlertStreamParallelism = nybbleAnalyticsConf.getInt("elasticsearch.alert.streamparallelism");
+            this.elasticsearchEventStreamParallelism = nybbleAnalyticsConf.getInt("elasticsearch.event.streamparallelism");
 
             // Sigma Rules parameters
             this.globalMapFile = nybbleAnalyticsConf.getString("global.map");
@@ -91,11 +121,7 @@ public class NybbleAnalyticsConfiguration {
             this.sigmaMapsFolder = nybbleAnalyticsConf.getString("maps.folder");
 
             // MISP parameters
-            if (nybbleAnalyticsConf.getString("misp.enrichment").equals("true")) {
-                this.mispEnrichmentFlag = true;
-            } else {
-                this.mispEnrichmentFlag = false;
-            }
+            this.mispEnrichmentFlag = nybbleAnalyticsConf.getBoolean("misp.enrichment");
 
             this.mispHost = nybbleAnalyticsConf.getString("misp.host");
 
@@ -145,6 +171,34 @@ public class NybbleAnalyticsConfiguration {
     public Integer getElasticsearchRestConTimeOut() { return elasticsearchRestConTimeOut; }
 
     public Integer getElasticsearchRestSckTimeOut() { return elasticsearchRestSckTimeOut; }
+
+    public Integer getElasticsearchAlertBulkFlushMaxActions() { return elasticsearchAlertBulkFlushMaxActions; }
+
+    public Integer getElasticsearchEventBulkFlushMaxActions() { return elasticsearchEventBulkFlushMaxActions; }
+
+    public Integer getElasticsearchAlertStreamParallelism() { return elasticsearchAlertStreamParallelism; }
+
+    public Integer getElasticsearchEventStreamParallelism() { return elasticsearchEventStreamParallelism; }
+
+    public String getRedisServerHost() { return redisServerIp; }
+
+    public Integer getRedisServerPort() { return redisServerPort; }
+
+    public Integer getRedisConnectionTimeOut() { return redisConnectionTimeOut; }
+
+    public Long getRedisKeyExpire() { return redisKeyExpire; }
+
+    public Integer getRedisIoThreads() { return redisIoThreads; }
+
+    public Integer getRedisComputeThreads() { return redisComputeThreads; }
+
+    public Integer getRedisPoolMaxWait() { return redisPoolMaxWait; }
+
+    public Boolean getRedisPoolTestOnBorrow() { return redisPoolTestOnBorrow; }
+
+    public Boolean getRedisPoolTestOnReturn() { return redisPoolTestOnReturn; }
+
+    public Boolean getRedisPoolTestWhileIdle() { return redisPoolTestWhileIdle; }
 
     public String getGlobalMapFile() { return globalMapFile; }
 

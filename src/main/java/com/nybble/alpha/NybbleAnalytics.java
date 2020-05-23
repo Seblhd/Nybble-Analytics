@@ -4,8 +4,8 @@ import com.nybble.alpha.control_stream.ControlDynamicKey;
 import com.nybble.alpha.control_stream.MultipleRulesProcess;
 import com.nybble.alpha.control_stream.SigmaSourceFunction;
 import com.nybble.alpha.alert_engine.*;
-import com.nybble.alpha.event_enrichment.EventEnrichment;
-import com.nybble.alpha.event_enrichment.MipsEnrichment;
+import com.nybble.alpha.event_enrichment.EventAsyncEnricher;
+import com.nybble.alpha.event_enrichment.MispEnrichment;
 import com.nybble.alpha.event_stream.EventDynamicKey;
 import com.nybble.alpha.event_stream.EventStreamTrigger;
 import com.nybble.alpha.event_stream.EventWindowFunction;
@@ -14,6 +14,7 @@ import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.time.Time;
@@ -30,10 +31,12 @@ import org.elasticsearch.client.Requests;
 import org.elasticsearch.client.RestClientBuilder;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,6 +48,7 @@ public class NybbleAnalytics {
 	private static Integer totalKafkaTopicPartitions = 0;
 
 	public static void main(String[] args) throws Exception {
+
 		// set up the streaming execution environment
 		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
@@ -60,8 +64,14 @@ public class NybbleAnalytics {
 		final String ES_EVENT_INDEX_NAME = nybbleAnalyticsConfiguration.getElasticsearchEventIndex();
 		final String ES_ALERT_INDEX_NAME = nybbleAnalyticsConfiguration.getElasticsearchAlertIndex();
 
+		// Initialize MISP Enrichment.
+		MispEnrichment nybbleMispEnrich = new MispEnrichment();
+
 		// Set mapping for MISP enrichement.
-		new MipsEnrichment().setMispMapping();
+		nybbleMispEnrich.setMispMapping();
+
+		// Set Event Enricher after init.
+		EventAsyncEnricher eventAsyncEnricher = new EventAsyncEnricher();
 
 		// Set up Kafka environment
 		Properties kafkaProperties = new Properties();
@@ -118,6 +128,7 @@ public class NybbleAnalytics {
 			//if (totalKafkaTopicPartitions <= env.getParallelism()) {
 			//	securityLogsConsumer.getRuntimeContext().getExecutionConfig().setParallelism(totalKafkaTopicPartitions);
 			//}
+
 		} else if (nybbleAnalyticsConfiguration.getKafkaTopicsName() != null &&
 				nybbleAnalyticsConfiguration.getKafkaTopicsPattern() != null) {
 			// Topic list and topics pattern has both been provided. By default, use topic list.
@@ -226,8 +237,8 @@ public class NybbleAnalytics {
 		});
 
 		// Configuration for the bulk requests; this instructs the sink to emit after every element, otherwise they would be buffered
-		esSinkDataBuilder.setBulkFlushMaxActions(1);
-		esSinkAlertBuilder.setBulkFlushMaxActions(1);
+		esSinkDataBuilder.setBulkFlushMaxActions(nybbleAnalyticsConfiguration.getElasticsearchEventBulkFlushMaxActions());
+		esSinkAlertBuilder.setBulkFlushMaxActions(nybbleAnalyticsConfiguration.getElasticsearchAlertBulkFlushMaxActions());
 
 		// Create Control Event (Sigma converted rules) Stream
 		DataStream<ObjectNode> sigmaRuleSourceStream = env.addSource(new SigmaSourceFunction())
@@ -239,13 +250,17 @@ public class NybbleAnalytics {
 		DataStream<ObjectNode> securityEventsStream = env.addSource(securityLogsConsumer)
 				.map(new MapFunction<ObjectNode, ObjectNode>() {
 					@Override
-					public ObjectNode map(ObjectNode eventNodes) throws Exception {
+					public ObjectNode map(ObjectNode eventNodes) {
 						return eventNodes.get("value").deepCopy();
 					}
-				}).map(new EventEnrichment());
+				});
 
-		// Send Events to Elasticsearch
-		securityEventsStream.map(ObjectNode::toString).addSink(esSinkDataBuilder.build());
+		DataStream<ObjectNode> securityEnrichEventsStream = AsyncDataStream.unorderedWait(securityEventsStream, eventAsyncEnricher, 5000, TimeUnit.MILLISECONDS);
+
+		// Send Enriched Events to Elasticsearch
+		securityEnrichEventsStream.map(ObjectNode::toString)
+				.addSink(esSinkDataBuilder.build())
+				.setParallelism(nybbleAnalyticsConfiguration.getElasticsearchEventStreamParallelism());
 
 		// Create Security Event (From Flink Stream) Stream and process for rule match.
 		DataStream<ObjectNode> ruleEngineStream = securityEventsStream
@@ -266,7 +281,9 @@ public class NybbleAnalytics {
 		alertStream.print();
 
 		// Send alerts to Elasticsearch
-		alertStream.map(Objects::toString).addSink(esSinkAlertBuilder.build());
+		alertStream.map(Objects::toString)
+				.addSink(esSinkAlertBuilder.build())
+				.setParallelism(nybbleAnalyticsConfiguration.getElasticsearchAlertStreamParallelism());
 
 		// execute program
 		env.execute("Flink Nybble Analytics SIEM");

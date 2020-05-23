@@ -1,32 +1,23 @@
 package com.nybble.alpha.event_enrichment;
 
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.Option;
+import com.nybble.alpha.utils.JsonPathCheck;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.JsonProcessingException;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.log4j.Logger;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class FindEnrichableFields {
+public class EnrichableFieldsFinder {
 
-    // Create JsonPath configuration to search value of fields.
-    private Configuration jsonPathConfig = Configuration.defaultConfiguration()
-            .addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL)
-            .addOptions(Option.ALWAYS_RETURN_LIST)
-            .addOptions(Option.SUPPRESS_EXCEPTIONS);
-    private ObjectMapper jsonMapper = new ObjectMapper();
     private static ArrayList<String> srcEnrichmentFieldArray = new ArrayList<>();
     private static HashMap<String, ArrayList<Tuple2<String, String>>> mispMappingMap = new HashMap<>();
     private static ArrayList<Tuple3<String, String, String>> enrichableFieldList = new ArrayList<>();
     private static Logger enrichmentEngineLogger = Logger.getLogger("enrichmentEngineFile");
+    private static JsonPathCheck jsonPathCheck = new JsonPathCheck();
 
     public ArrayList<Tuple3<String, String, String>> getList (ObjectNode eventNode) {
 
@@ -37,9 +28,9 @@ public class FindEnrichableFields {
 
             // Search if field is in Event Node
             try {
-                List<?> searchFieldValue = JsonPath.using(jsonPathConfig)
-                        .parse(jsonMapper.writeValueAsString(eventNode))
-                        .read("$." + enrichmentField);
+
+                String jsonPath = "$." + enrichmentField;
+                List<?> searchFieldValue = jsonPathCheck.getJsonListValue(eventNode, jsonPath);
 
                 // If field has been found, then searchField value list contain the value.
                 // Else, because of the "ALWAYS_RETURN_LIST" option, empty list is return when field has not bee found.
