@@ -1,16 +1,150 @@
 {
-  "tags" : {
-    "C2-Domain" : {
-      "domain" : ["destination.registered_domain", "dns.answers.name", "dns.question.name", "dns.question.registered_domain", "server.registered_domain"],
-      "hostname" : ["dns.answers.name", "dns.question.name", "host.hostname"]
-    },
-    "C2-IP" : {
-      "ip-dst" : ["destination.address", "destination.ip", "server.address", "server.ip"],
-      "ip-src" : ["source.address", "source.ip", "client.address", "client.ip"]
-    },
-    "TOR-node" : {
-      "ip-dst" : ["destination.address", "destination.ip", "server.address", "server.ip"],
-      "ip-src" : ["source.address", "source.ip", "client.address", "client.ip"]
-    }
-  }
+	"client.address" : {
+		"C2-IP" : [{
+			"mispAttribute" : "ip-src",
+			"type" : "ip",
+			"enrichPublicOnly" : true
+		}],
+		"TOR-node" : [{
+			"mispAttribute" : "ip-src",
+			"type" : "ip",
+			"enrichPublicOnly" : true
+		}]
+	},
+	"client.ip" : {
+		"C2-IP" : [{
+			"mispAttribute" : "ip-src",
+			"type" : "ip",
+			"enrichPublicOnly" : true
+		}],
+		"TOR-node" : [{
+			"mispAttribute" : "ip-src",
+			"type" : "ip",
+			"enrichPublicOnly" : true
+		}]
+	},
+	"destination.address" : {
+		"C2-IP" : [{
+			"mispAttribute" : "ip-dst",
+			"type" : "ip",
+			"enrichPublicOnly" : true
+		}],
+		"TOR-node" : [{
+			"mispAttribute" : "ip-dst",
+			"type" : "ip",
+			"enrichPublicOnly" : true
+		}]
+	},
+	"destination.ip" : {
+		"C2-IP" : [{
+			"mispAttribute" : "ip-dst",
+			"type" : "ip",
+			"enrichPublicOnly" : true
+		}],
+		"TOR-node" : [{
+			"mispAttribute" : "ip-dst",
+			"type" : "ip",
+			"enrichPublicOnly" : true
+		}]
+	},
+	"destination.registered_domain" : {
+		"C2-Domain" : [{
+			"mispAttribute" : "domain",
+			"type" : "domain",
+			"resolveName" : false
+		}]
+	},
+	"dns.answers.name" : {
+		"C2-Domain" : [{
+			"mispAttribute" : "domain",
+			"type" : "domain",
+			"resolveName" : false
+		},
+		{
+			"mispAttribute" : "hostname",
+			"type" : "domain",
+			"resolveName" : false
+		}]
+	},
+	"dns.question.name" : {
+		"C2-Domain" : [{
+			"mispAttribute" : "domain",
+			"type" : "domain",
+			"resolveName" : false
+		},
+		{
+			"mispAttribute" : "hostname",
+			"type" : "domain",
+			"resolveName" : false
+		}]
+	},
+	"dns.question.registered_domain" : {
+		"C2-Domain" : [{
+			"mispAttribute" : "domain",
+			"type" : "domain",
+			"resolveName" : false
+		}]
+	},
+	"host.hostname" : {
+		"C2-Domain" : [{
+			"mispAttribute" : "hostname",
+			"type" : "domain",
+			"resolveName" : false
+		}]
+	},
+	"server.address" : {
+		"C2-IP" : [{
+			"mispAttribute" : "ip-dst",
+			"type" : "ip",
+			"enrichPublicOnly" : true
+		}],
+		"TOR-node" : [{
+			"mispAttribute" : "ip-dst",
+			"type" : "ip",
+			"enrichPublicOnly" : true
+		}]
+	},
+	"server.ip" : {
+		"C2-IP" : [{
+			"mispAttribute" : "ip-dst",
+			"type" : "ip",
+			"enrichPublicOnly" : true
+		}],
+		"TOR-node" : [{
+			"mispAttribute" : "ip-dst",
+			"type" : "ip",
+			"enrichPublicOnly" : true
+		}]
+	},
+	"server.registered_domain" : {
+		"C2-Domain" : [{
+			"mispAttribute" : "domain",
+			"type" : "domain",
+			"resolveName" : false
+		}]
+	},
+	"source.address" : {
+		"C2-IP" : [{
+			"mispAttribute" : "ip-src",
+			"type" : "ip",
+			"enrichPublicOnly" : true
+		}],
+		"TOR-node" : [{
+			"mispAttribute" : "ip-src",
+			"type" : "ip",
+			"enrichPublicOnly" : true
+		}]
+	},
+	"source.ip" : {
+		"C2-IP" : [{
+			"mispAttribute" : "ip-src",
+			"type" : "ip",
+			"enrichPublicOnly" : true
+		}],
+		"TOR-node" : [{
+			"mispAttribute" : "ip-src",
+			"type" : "ip",
+			"enrichPublicOnly" : true
+		}]
+	}
 }

@@ -90,11 +90,6 @@ under the License.
 			<version>2.4.0</version>
 		</dependency>
 		<dependency>
-			<groupId>redis.clients</groupId>
-			<artifactId>jedis</artifactId>
-			<version>3.3.0</version>
-		</dependency>
-		<dependency>
 			<groupId>io.lettuce</groupId>
 			<artifactId>lettuce-core</artifactId>
 			<version>6.0.0.M1</version>
@@ -264,11 +259,6 @@ under the License.
 					<groupId>org.yaml</groupId>
 					<artifactId>snakeyaml</artifactId>
 					<version>1.25</version>
-				</dependency>
-				<dependency>
-					<groupId>redis.clients</groupId>
-					<artifactId>jedis</artifactId>
-					<version>3.3.0</version>
 				</dependency>
 			</dependencies>
 		</profile>

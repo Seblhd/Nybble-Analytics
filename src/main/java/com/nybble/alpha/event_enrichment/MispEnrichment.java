@@ -1,11 +1,11 @@
 package com.nybble.alpha.event_enrichment;
 
 import com.nybble.alpha.NybbleAnalyticsConfiguration;
-import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.java.tuple.Tuple;
+import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.http.HttpHeaders;
 import org.apache.log4j.Logger;
@@ -32,7 +32,7 @@ public class MispEnrichment {
     private URI mispURL = URI.create(nybbleAnalyticsConfiguration.getMispProto() + "://" + nybbleAnalyticsConfiguration.getMispHost() + "/attributes/restSearch");
     private String mispAutomationKey = nybbleAnalyticsConfiguration.getMispAutomationKey();
     private AsyncHttpClient mispAsyncRestClient = asyncHttpClient(config().setMaxConnectionsPerHost(64).setConnectionPoolCleanerPeriod(3000));
-    private HashMap<String, ArrayList<Tuple2<String, String>>> mispMappingMap = new HashMap<>();
+    private HashMap<String, ArrayList<Tuple>> mispMappingMap = new HashMap<>();
     private ArrayList<String> srcEnrichmentFieldArray = new ArrayList<>();
     private static Logger enrichmentEngineLogger = Logger.getLogger("enrichmentEngineFile");
 
@@ -75,55 +75,71 @@ public class MispEnrichment {
         // Create a ObjectNode containing information in MispMap JSON file.
         ObjectNode mispMapNode = jsonMapper.readValue(new File(nybbleAnalyticsConfiguration.getMispMapFile()), ObjectNode.class);
 
-        // Iterate on "Tags" to retrieve all MISP tags in mapping file
-        Iterator<Map.Entry<String, JsonNode>> mispMapIterator =  mispMapNode.get("tags").fields();
+        // Iterate though all source fields to be enrich.
+        Iterator<Map.Entry<String, JsonNode>> mispMapIterator = mispMapNode.fields();
 
         while (mispMapIterator.hasNext()) {
 
-            // Get value of next MISP Tag
-            Map.Entry<String, JsonNode> mispTagMap = mispMapIterator.next();
+            Map.Entry<String, JsonNode> srcFieldEnrich = mispMapIterator.next();
 
-            Iterator<Map.Entry<String, JsonNode>> mispTypeIterator = mispTagMap.getValue().fields();
+            // Add all source fields from mapping file. This list wil be use to check which fields
+            // from events will be used for enrichment.
+            if (!srcEnrichmentFieldArray.contains(srcFieldEnrich.getKey())) {
+                srcEnrichmentFieldArray.add(srcFieldEnrich.getKey());
+            }
 
-            for (int x = 0; x < mispTagMap.getValue().size(); x++) {
+            // For each source field, Iterate to retrieve all MISP Tags for enrichment.
+            Iterator<Map.Entry<String, JsonNode>> mispTagsIterator = srcFieldEnrich.getValue().fields();
 
-                Map.Entry<String, JsonNode> mispTypeMap = mispTypeIterator.next();
+            for(int x = 0; x < srcFieldEnrich.getValue().size(); x++) {
 
-                ArrayNode mispTypeMappingNode = (ArrayNode) jsonMapper.readTree(mispTypeMap.getValue().deepCopy().toString());
+                Map.Entry<String, JsonNode> mispTagMap = mispTagsIterator.next();
 
-                if (mispTypeMappingNode.isArray()) {
-                    mispTypeMappingNode.forEach(ecsField -> {
+                for (int y = 0; y < mispTagMap.getValue().size(); y++) {
 
-                        // Add all ECS field from mapping file. this list wil be use to check which fields
-                        // from events need to be used for enrichment.
-                        if (!srcEnrichmentFieldArray.contains(ecsField.asText())) {
-                            srcEnrichmentFieldArray.add(ecsField.asText());
+                    ObjectNode currentMispNode = mispTagMap.getValue().get(y).deepCopy();
+
+                    // Create entry in mispMappingMap HashMap to know which tags, type and value from event field to use for MISP request.
+                    // Each ECS field is associated with one or more MISP event tag, MISP attribute type and option(s) specific to type.
+                    if (currentMispNode.get("type").asText().equals("ip")) {
+                        if (currentMispNode.has("mispAttribute") &&
+                                currentMispNode.has("type") &&
+                                currentMispNode.has("enrichPublicOnly")) {
+
+                            // Create a new Tuple4 where :
+                            // f0 -> MISP Event tag
+                            // f1 -> MISP Attribute Type.
+                            // f2 -> Global type
+                            // f3 -> Enrichment option
+                            Tuple4<String, String, String, Boolean> mispEnrichIpTuple = new Tuple4<>();
+                            mispEnrichIpTuple.setFields(mispTagMap.getKey(),
+                                    currentMispNode.get("mispAttribute").asText(),
+                                    currentMispNode.get("type").asText(),
+                                    currentMispNode.get("enrichPublicOnly").asBoolean());
+
+                            buildMispHashMap(srcFieldEnrich.getKey(), mispEnrichIpTuple);
                         }
+                    } else if (currentMispNode.get("type").asText().equals("domain")) {
+                        if (currentMispNode.has("mispAttribute") &&
+                                currentMispNode.has("type") &&
+                                currentMispNode.has("resolveName")) {
 
-                        // Create entry in mispMappingMap HashMap to know which tags, type and value from event field to use for MISP request.
-                        // Each ECS field is associated with one or more MISP event tag and MISP attribute type.
+                            // Create a new Tuple4 where :
+                            // f0 -> MISP Event tag
+                            // f1 -> MISP Attribute Type.
+                            // f2 -> Global type
+                            // f3 -> Enrichment option
+                            Tuple4<String, String, String, Boolean> mispEnrichDomainTuple = new Tuple4<>();
+                            mispEnrichDomainTuple.setFields(mispTagMap.getKey(),
+                                    currentMispNode.get("mispAttribute").asText(),
+                                    currentMispNode.get("type").asText(),
+                                    currentMispNode.get("resolveName").asBoolean());
 
-                        // Create a new tuple where f0 is MISP Event tag and f1 MISP Attribute Type.
-                        Tuple2<String, String> mispTagTypeTuple = new Tuple2<>();
-                        mispTagTypeTuple.setFields(mispTagMap.getKey(), mispTypeMap.getKey());
-
-                        if (mispMappingMap.containsKey(ecsField.asText())) {
-                            // Get the current ArrayList from mismMappingMap and add new tuple if not already existing and update mispMappingMap
-                            ArrayList<Tuple2<String, String>> mispTupleList = mispMappingMap.get(ecsField.asText());
-                            if (!mispTupleList.contains(mispTagTypeTuple)) {
-                                mispTupleList.add(mispTagTypeTuple);
-                                mispMappingMap.replace(ecsField.asText(), mispTupleList);
-                            }
-
-                        } else if (!mispMappingMap.containsKey(ecsField.asText())) {
-                            // Create a new ArrayList that will contains all MISP Event tag and Attribute type tuples.
-                            ArrayList<Tuple2<String, String>> mispTupleList = new ArrayList<>();
-                            mispTupleList.add(mispTagTypeTuple);
-
-                            // Add an entry in mispMappingMap HashMap with current ECS field as key and ArrayList of tuples as value.
-                            mispMappingMap.put(ecsField.asText(), mispTupleList);
+                            buildMispHashMap(srcFieldEnrich.getKey(), mispEnrichDomainTuple);
                         }
-                    });
+                    } else {
+                        enrichmentEngineLogger.error("MISP Mapping : type \"" + mispTagMap.getValue().get("type").asText() + "\" is not supported");
+                    }
                 }
             }
         }
@@ -131,5 +147,25 @@ public class MispEnrichment {
         // When MISP Mapping file as been processed, set values for Flink Map Function.
         EnrichableFieldsFinder.setSrcEnrichmentFieldArray(srcEnrichmentFieldArray);
         EnrichableFieldsFinder.setMispMappingMap(mispMappingMap);
+    }
+
+    private void buildMispHashMap(String srcField, Tuple mispEnrichTuple) {
+
+        if (mispMappingMap.containsKey(srcField)) {
+            // Get the current ArrayList from mismMappingMap and add new tuple if not already existing and update mispMappingMap
+            ArrayList<Tuple> mispTupleList = mispMappingMap.get(srcField);
+            if (!mispTupleList.contains(mispEnrichTuple)) {
+                mispTupleList.add(mispEnrichTuple);
+                mispMappingMap.replace(srcField, mispTupleList);
+            }
+
+        } else if (!mispMappingMap.containsKey(srcField)) {
+            // Create a new ArrayList that will contains all MISP Event tag and Attribute type tuples.
+            ArrayList<Tuple> mispTupleList = new ArrayList<>();
+            mispTupleList.add(mispEnrichTuple);
+
+            // Add an entry in mispMappingMap HashMap with current ECS field as key and ArrayList of tuples as value.
+            mispMappingMap.put(srcField, mispTupleList);
+        }
     }
 }

@@ -7,7 +7,7 @@ import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.resource.ClientResources;
 import io.lettuce.core.resource.DefaultClientResources;
-import org.apache.flink.api.java.tuple.Tuple3;
+import org.apache.flink.api.java.tuple.Tuple5;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ArrayNode;
@@ -70,12 +70,14 @@ public class EventAsyncEnricher extends RichAsyncFunction<ObjectNode, ObjectNode
     @Override
     public void asyncInvoke(ObjectNode eventNode, ResultFuture<ObjectNode> eventNodeFuture) {
 
-        ArrayList<Tuple3<String, String, String>> enrichableFields = new EnrichableFieldsFinder().getList(eventNode);
+        ArrayList<Tuple5<String, String, String, String , ?>> enrichableFields = new EnrichableFieldsFinder().getList(eventNode);
 
         // mispRestSearchFields Tuple3 will contains all information for the RestSearch request.
         // f0 is : Event Tag
         // f1 is : Attribute Type
         // f2 is : Attribute Value
+        // f3 is : Global type
+        // f4 is : Enrichment option
 
         //System.out.println("Enrichable fields list : " + enrichableFields);
 
