@@ -10,6 +10,7 @@ import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class JsonPathCheck {
 
@@ -37,12 +38,13 @@ public class JsonPathCheck {
 
     public Boolean getJsonBoolValue(ObjectNode jsonNode, String jsonPath) {
         try {
-            return JsonPath.using(jsonPathConfigValue)
+            Boolean JsonBoolValue = JsonPath.using(jsonPathConfigValue)
                     .parse(jsonMapper.writeValueAsString(jsonNode))
                     .read(jsonPath);
+            return Objects.requireNonNullElse(JsonBoolValue, false);
         } catch (JsonProcessingException jsonProcessEx) {
             nybbleAnalyticsLogger.error("JSON Patch check : " + jsonProcessEx);
-            return null;
+            return false;
         }
     }
 

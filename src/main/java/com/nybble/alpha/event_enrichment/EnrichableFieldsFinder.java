@@ -15,7 +15,6 @@ public class EnrichableFieldsFinder {
 
     private static ArrayList<String> srcEnrichmentFieldArray = new ArrayList<>();
     private static HashMap<String, ArrayList<Tuple>> mispMappingMap = new HashMap<>();
-    //private static ArrayList<Tuple3<String, String, String>> enrichableFieldList = new ArrayList<>();
     private static Logger enrichmentEngineLogger = Logger.getLogger("enrichmentEngineFile");
     private static JsonPathCheck jsonPathCheck = new JsonPathCheck();
 

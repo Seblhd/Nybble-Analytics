@@ -1,6 +1,7 @@
 package com.nybble.alpha.event_enrichment;
 
 import com.nybble.alpha.NybbleAnalyticsConfiguration;
+import com.nybble.alpha.utils.JsonPathCheck;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.RedisURI;

@@ -31,7 +31,6 @@ import org.elasticsearch.client.Requests;
 import org.elasticsearch.client.RestClientBuilder;
 
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -255,12 +254,19 @@ public class NybbleAnalytics {
 					}
 				});
 
-		DataStream<ObjectNode> securityEnrichEventsStream = AsyncDataStream.unorderedWait(securityEventsStream, eventAsyncEnricher, 5000, TimeUnit.MILLISECONDS);
+		DataStream<ObjectNode> securityEnrichEventsStream = AsyncDataStream.unorderedWait(securityEventsStream, eventAsyncEnricher, 5000, TimeUnit.MILLISECONDS).setParallelism(6);
 
 		// Send Enriched Events to Elasticsearch
 		securityEnrichEventsStream.map(ObjectNode::toString)
 				.addSink(esSinkDataBuilder.build())
 				.setParallelism(nybbleAnalyticsConfiguration.getElasticsearchEventStreamParallelism());
+
+		securityEnrichEventsStream.map(new MapFunction<ObjectNode, Integer>() {
+			@Override
+			public Integer map(ObjectNode jsonNodes) throws Exception {
+				return 1;
+			}
+		}).timeWindowAll(Time.seconds(1)).sum(0).print();
 
 		// Create Security Event (From Flink Stream) Stream and process for rule match.
 		DataStream<ObjectNode> ruleEngineStream = securityEventsStream
