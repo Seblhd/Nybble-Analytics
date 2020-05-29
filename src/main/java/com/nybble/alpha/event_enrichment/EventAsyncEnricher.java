@@ -18,11 +18,14 @@ import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 
 public class EventAsyncEnricher extends RichAsyncFunction<ObjectNode, ObjectNode> {
 
@@ -73,7 +76,7 @@ public class EventAsyncEnricher extends RichAsyncFunction<ObjectNode, ObjectNode
 
         ArrayList<Tuple5<String, String, String, String , ?>> enrichableFields = new EnrichableFieldsFinder().getList(eventNode);
 
-        // mispRestSearchFields Tuple3 will contains all information for the RestSearch request.
+        // mispRestSearchFields Tuple5 will contains all information for the RestSearch request.
         // f0 is : Event Tag
         // f1 is : Attribute Type
         // f2 is : Attribute Value
@@ -85,62 +88,104 @@ public class EventAsyncEnricher extends RichAsyncFunction<ObjectNode, ObjectNode
         if(!enrichableFields.isEmpty()) {
             enrichableFields.forEach(mispRequest -> {
 
-                RedisFuture<String> mispRedisCache = mispRedisAsyncCommands.get(mispRequest.f2);
+                // If Global type (mispRequest.f3) is "ip", then check "EnrichOnlyPublic" option value. This value determine if both Private and Public IP will be enriched or only Public IP.
+                // Else If Global type (mispRequest.f3) is "domain", then check "ResolveName" option value. This value determine if Domain will be resolve and enrcih by MISP Request.
+                // Else just try to enrich event without any option.
+                if (mispRequest.f3.equals("ip")) {
+                    // If Enrich Only Public IP is true, then check if IP is public.
+                    // Else if Enrich Only Public IP is false, then enrich directly.
+                    if ((Boolean) mispRequest.f4) {
+                        try {
+                            InetAddress requestedIp = InetAddress.getByName(mispRequest.f2);
+                            if (!requestedIp.isSiteLocalAddress() && !requestedIp.isLoopbackAddress() && !requestedIp.isLinkLocalAddress() && !requestedIp.isMulticastAddress()) {
 
-                try {
-                    // Get MISP Attribute JSON String from Redis.
-                    String mispRedisAttribute = mispRedisCache.get();
-                    // If not null, enrich eventNode.
-                    // If null, create REST query to MISP Server.
-                    if (mispRedisAttribute != null) {
-                        CompletableFuture.supplyAsync(() -> {
-                            try {
-                                // Create an ObjectNode with value from already existing key.
-                                ObjectNode mispRedisAttributeNode = jsonMapper.readTree(mispRedisAttribute).deepCopy();
-                                // If Node from Redis Cache is already containing information for current MISP Tag, then enrich.
-                                // Else, create a REST Request to get information for a tag from MISP server and add them to Redis and enrich.
-                                if (mispRedisAttributeNode.has(mispRequest.f0)) {
-                                    eventNode.setAll(enrichEvent(mispRedisAttributeNode.get(mispRequest.f0).deepCopy()));
-                                } else {
-                                    ObjectNode mispRestRequestNode = new MispEnrichment().mispRequest(mispRequest.f0, mispRequest.f1, mispRequest.f2);
-                                    // If REST Request has failed, an empty node is returned.
-                                    if (!mispRestRequestNode.isEmpty()) {
-                                        //ObjectNode redisCacheNode = jsonMapper.createObjectNode().set(mispRequest.f0, mispRestRequestNode);
-                                        mispRedisAttributeNode.set(mispRequest.f0, mispRestRequestNode);
-                                        //System.out.println("New ObjectNode for already existing is : " + mispRedisAttributeNode.toString());
-                                        mispRedisAsyncCommands.set(mispRequest.f2, jsonMapper.writeValueAsString(mispRedisAttributeNode));
-                                        // If Attribute Array is not empty enrich.
-                                        if (!mispRestRequestNode.get("Attribute").isEmpty()) {
-                                            eventNode.setAll(enrichEvent(mispRestRequestNode));
-                                        }
-                                    }
-                                }
-                            } catch (IOException e) {
-                                e.printStackTrace();
+                                CompletableFuture.supplyAsync(() -> mispRedisRequest(eventNode, mispRequest)).thenAccept( (ObjectNode enrichedEventNode) -> {
+                                    eventNodeFuture.complete(Collections.singleton(enrichedEventNode));
+                                });
                             }
-                            return eventNode;
-                        }).thenAccept( (ObjectNode enrichedEventNode) -> eventNodeFuture.complete(Collections.singleton(enrichedEventNode)));
-                    } else {
-                        ObjectNode mispRestRequestNode = new MispEnrichment().mispRequest(mispRequest.f0, mispRequest.f1, mispRequest.f2);
-                        if (!mispRestRequestNode.isEmpty()) {
-                            ObjectNode redisCacheNode = jsonMapper.createObjectNode().set(mispRequest.f0, mispRestRequestNode);
-
-                            // Write JSON String in Redis and set key expiration.
-                            mispRedisAsyncCommands.set(mispRequest.f2, jsonMapper.writeValueAsString(redisCacheNode));
-                            mispRedisAsyncCommands.expire(mispRequest.f2, redisKeyExpiration);
-                            // If Attribute Array is not empty enrich.
-                            if (!mispRestRequestNode.get("Attribute").isEmpty()) {
-                                eventNode.setAll(enrichEvent(mispRestRequestNode));
-                            }
+                        } catch (UnknownHostException e) {
+                            enrichmentEngineLogger.error("IP Enrichment : " + mispRequest.f2 + "is not a valid IP");
                         }
+                    } else{
+                        CompletableFuture.supplyAsync(() -> mispRedisRequest(eventNode, mispRequest)).thenAccept( (ObjectNode enrichedEventNode) -> {
+                            eventNodeFuture.complete(Collections.singleton(enrichedEventNode));
+                        });
                     }
-                } catch (InterruptedException | ExecutionException | IOException e) {
-                    e.printStackTrace();
+                } else if (mispRequest.f3.equals("domain")) {
+                    // If ResolveName is true, then resolve domain and request MISP
+                    // Else only request MISP.
+                    /*if ((Boolean) mispRequest.f4) {
+                        // Async DNS Resolver to create.
+                    } else {
+
+                    }*/
+                    CompletableFuture.supplyAsync(() -> mispRedisRequest(eventNode, mispRequest)).thenAccept( (ObjectNode enrichedEventNode) -> {
+                        eventNodeFuture.complete(Collections.singleton(enrichedEventNode));
+                    });
                 }
             });
+        } else {
+            eventNodeFuture.complete(Collections.singleton(eventNode));
+        }
+    }
+
+    private ObjectNode mispRedisRequest(ObjectNode eventNode, Tuple5<String, String, String, String , ?> mispRequest) {
+
+        RedisFuture<String> mispRedisCache = mispRedisAsyncCommands.get(mispRequest.f2);
+
+        try {
+            // Get MISP Attribute JSON String from Redis.
+            String mispRedisAttribute = mispRedisCache.get();
+            // If not null, enrich eventNode.
+            // If null, create REST query to MISP Server.
+            if (mispRedisAttribute != null) {
+                //CompletableFuture.supplyAsync(() -> {
+                    try {
+                        // Create an ObjectNode with value from already existing key.
+                        ObjectNode mispRedisAttributeNode = jsonMapper.readTree(mispRedisAttribute).deepCopy();
+                        //System.out.println("MISP Attributes are : " + mispRedisAttributeNode);
+                        // If Node from Redis Cache is already containing information for current MISP Tag, then enrich.
+                        // Else, create a REST Request to get information for a tag from MISP server and add them to Redis and enrich.
+                        if (mispRedisAttributeNode.has(mispRequest.f0)) {
+                            eventNode.setAll(enrichEvent(mispRedisAttributeNode.get(mispRequest.f0).deepCopy()));
+                        } else {
+                            ObjectNode mispRestRequestNode = new MispEnrichment().mispRequest(mispRequest.f0, mispRequest.f1, mispRequest.f2);
+                            // If REST Request has failed, an empty node is returned.
+                            if (!mispRestRequestNode.isEmpty()) {
+                                //ObjectNode redisCacheNode = jsonMapper.createObjectNode().set(mispRequest.f0, mispRestRequestNode);
+                                mispRedisAttributeNode.set(mispRequest.f0, mispRestRequestNode);
+                                //System.out.println("New ObjectNode for already existing is : " + mispRedisAttributeNode.toString());
+                                mispRedisAsyncCommands.set(mispRequest.f2, jsonMapper.writeValueAsString(mispRedisAttributeNode));
+                                // If Attribute Array is not empty enrich.
+                                if (!mispRestRequestNode.get("Attribute").isEmpty()) {
+                                    eventNode.setAll(enrichEvent(mispRestRequestNode));
+                                }
+                            }
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return eventNode;
+                //});//.thenAccept( (ObjectNode enrichedEventNode) -> eventNodeFuture.complete(Collections.singleton(enrichedEventNode)));
+            } else {
+                ObjectNode mispRestRequestNode = new MispEnrichment().mispRequest(mispRequest.f0, mispRequest.f1, mispRequest.f2);
+                if (!mispRestRequestNode.isEmpty()) {
+                    ObjectNode redisCacheNode = jsonMapper.createObjectNode().set(mispRequest.f0, mispRestRequestNode);
+
+                    // Write JSON String in Redis and set key expiration.
+                    mispRedisAsyncCommands.set(mispRequest.f2, jsonMapper.writeValueAsString(redisCacheNode));
+                    mispRedisAsyncCommands.expire(mispRequest.f2, redisKeyExpiration);
+                    // If Attribute Array is not empty enrich.
+                    if (!mispRestRequestNode.get("Attribute").isEmpty()) {
+                        eventNode.setAll(enrichEvent(mispRestRequestNode));
+                    }
+                }
+            }
+        } catch (InterruptedException | ExecutionException | IOException e) {
+            e.printStackTrace();
         }
 
-        eventNodeFuture.complete(Collections.singleton(eventNode));
+        return eventNode;
     }
 
     private ObjectNode enrichEvent(ObjectNode mispResultNode) {
