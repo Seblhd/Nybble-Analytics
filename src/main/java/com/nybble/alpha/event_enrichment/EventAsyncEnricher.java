@@ -1,7 +1,6 @@
 package com.nybble.alpha.event_enrichment;
 
 import com.nybble.alpha.NybbleAnalyticsConfiguration;
-import com.nybble.alpha.utils.JsonPathCheck;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.RedisURI;
@@ -25,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Supplier;
 
 public class EventAsyncEnricher extends RichAsyncFunction<ObjectNode, ObjectNode> {
 
