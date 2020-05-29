@@ -99,15 +99,15 @@ public class EventAsyncEnricher extends RichAsyncFunction<ObjectNode, ObjectNode
                             InetAddress requestedIp = InetAddress.getByName(mispRequest.f2);
                             if (!requestedIp.isSiteLocalAddress() && !requestedIp.isLoopbackAddress() && !requestedIp.isLinkLocalAddress() && !requestedIp.isMulticastAddress()) {
 
-                                CompletableFuture.supplyAsync(() -> mispRedisRequest(eventNode, mispRequest)).thenAccept( (ObjectNode enrichedEventNode) -> {
+                                CompletableFuture.supplyAsync(() -> mispRedisRequest(eventNode, mispRequest)).thenAccept((ObjectNode enrichedEventNode) -> {
                                     eventNodeFuture.complete(Collections.singleton(enrichedEventNode));
                                 });
                             }
                         } catch (UnknownHostException e) {
                             enrichmentEngineLogger.error("IP Enrichment : " + mispRequest.f2 + "is not a valid IP");
                         }
-                    } else{
-                        CompletableFuture.supplyAsync(() -> mispRedisRequest(eventNode, mispRequest)).thenAccept( (ObjectNode enrichedEventNode) -> {
+                    } else {
+                        CompletableFuture.supplyAsync(() -> mispRedisRequest(eventNode, mispRequest)).thenAccept((ObjectNode enrichedEventNode) -> {
                             eventNodeFuture.complete(Collections.singleton(enrichedEventNode));
                         });
                     }
@@ -119,7 +119,7 @@ public class EventAsyncEnricher extends RichAsyncFunction<ObjectNode, ObjectNode
                     } else {
 
                     }*/
-                    CompletableFuture.supplyAsync(() -> mispRedisRequest(eventNode, mispRequest)).thenAccept( (ObjectNode enrichedEventNode) -> {
+                    CompletableFuture.supplyAsync(() -> mispRedisRequest(eventNode, mispRequest)).thenAccept((ObjectNode enrichedEventNode) -> {
                         eventNodeFuture.complete(Collections.singleton(enrichedEventNode));
                     });
                 }
