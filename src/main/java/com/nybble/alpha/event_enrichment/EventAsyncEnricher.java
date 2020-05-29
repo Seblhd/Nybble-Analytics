@@ -139,34 +139,32 @@ public class EventAsyncEnricher extends RichAsyncFunction<ObjectNode, ObjectNode
             // If not null, enrich eventNode.
             // If null, create REST query to MISP Server.
             if (mispRedisAttribute != null) {
-                //CompletableFuture.supplyAsync(() -> {
-                    try {
-                        // Create an ObjectNode with value from already existing key.
-                        ObjectNode mispRedisAttributeNode = jsonMapper.readTree(mispRedisAttribute).deepCopy();
-                        //System.out.println("MISP Attributes are : " + mispRedisAttributeNode);
-                        // If Node from Redis Cache is already containing information for current MISP Tag, then enrich.
-                        // Else, create a REST Request to get information for a tag from MISP server and add them to Redis and enrich.
-                        if (mispRedisAttributeNode.has(mispRequest.f0)) {
-                            eventNode.setAll(enrichEvent(mispRedisAttributeNode.get(mispRequest.f0).deepCopy()));
-                        } else {
-                            ObjectNode mispRestRequestNode = new MispEnrichment().mispRequest(mispRequest.f0, mispRequest.f1, mispRequest.f2);
-                            // If REST Request has failed, an empty node is returned.
-                            if (!mispRestRequestNode.isEmpty()) {
-                                //ObjectNode redisCacheNode = jsonMapper.createObjectNode().set(mispRequest.f0, mispRestRequestNode);
-                                mispRedisAttributeNode.set(mispRequest.f0, mispRestRequestNode);
-                                //System.out.println("New ObjectNode for already existing is : " + mispRedisAttributeNode.toString());
-                                mispRedisAsyncCommands.set(mispRequest.f2, jsonMapper.writeValueAsString(mispRedisAttributeNode));
-                                // If Attribute Array is not empty enrich.
-                                if (!mispRestRequestNode.get("Attribute").isEmpty()) {
-                                    eventNode.setAll(enrichEvent(mispRestRequestNode));
-                                }
+                try {
+                    // Create an ObjectNode with value from already existing key.
+                    ObjectNode mispRedisAttributeNode = jsonMapper.readTree(mispRedisAttribute).deepCopy();
+                    //System.out.println("MISP Attributes are : " + mispRedisAttributeNode);
+                    // If Node from Redis Cache is already containing information for current MISP Tag, then enrich.
+                    // Else, create a REST Request to get information for a tag from MISP server and add them to Redis and enrich.
+                    if (mispRedisAttributeNode.has(mispRequest.f0)) {
+                        eventNode.setAll(enrichEvent(mispRedisAttributeNode.get(mispRequest.f0).deepCopy()));
+                    } else {
+                        ObjectNode mispRestRequestNode = new MispEnrichment().mispRequest(mispRequest.f0, mispRequest.f1, mispRequest.f2);
+                        // If REST Request has failed, an empty node is returned.
+                        if (!mispRestRequestNode.isEmpty()) {
+                            //ObjectNode redisCacheNode = jsonMapper.createObjectNode().set(mispRequest.f0, mispRestRequestNode);
+                            mispRedisAttributeNode.set(mispRequest.f0, mispRestRequestNode);
+                            //System.out.println("New ObjectNode for already existing is : " + mispRedisAttributeNode.toString());
+                            mispRedisAsyncCommands.set(mispRequest.f2, jsonMapper.writeValueAsString(mispRedisAttributeNode));
+                            // If Attribute Array is not empty enrich.
+                            if (!mispRestRequestNode.get("Attribute").isEmpty()) {
+                                eventNode.setAll(enrichEvent(mispRestRequestNode));
                             }
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     }
-                    return eventNode;
-                //});//.thenAccept( (ObjectNode enrichedEventNode) -> eventNodeFuture.complete(Collections.singleton(enrichedEventNode)));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return eventNode;
             } else {
                 ObjectNode mispRestRequestNode = new MispEnrichment().mispRequest(mispRequest.f0, mispRequest.f1, mispRequest.f2);
                 if (!mispRestRequestNode.isEmpty()) {
