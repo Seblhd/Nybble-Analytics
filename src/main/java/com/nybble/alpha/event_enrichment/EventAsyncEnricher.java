@@ -131,7 +131,16 @@ public class EventAsyncEnricher extends RichAsyncFunction<ObjectNode, ObjectNode
                     // Else only request MISP.
                     if ((Boolean) mispRequest.f4) {
 
-                        dnsCacheRedisRequest(mispRequest.f2);
+                        // Get resolved address from Redis DNS Cache and add info if node is not empty.
+                        ObjectNode dnsCacheNode = null;
+                        try {
+                            dnsCacheNode = dnsCacheRedisRequest(mispRequest.f2);
+                            if (!dnsCacheNode.isEmpty()) {
+                                eventNode.setAll(dnsCacheNode);
+                            }
+                        } catch (JsonProcessingException e) {
+                            e.printStackTrace();
+                        }
 
                         CompletableFuture.supplyAsync(() -> mispRedisRequest(eventNode, mispRequest)).thenAccept((ObjectNode enrichedEventNode) -> {
                             eventNodeFuture.complete(Collections.singleton(enrichedEventNode));
@@ -205,10 +214,10 @@ public class EventAsyncEnricher extends RichAsyncFunction<ObjectNode, ObjectNode
         return eventNode;
     }
 
-    private ObjectNode dnsCacheRedisRequest (String domainName) {
+    private ObjectNode dnsCacheRedisRequest (String domainName) throws JsonProcessingException {
 
         // Create a Node that will contains information from DNS request and then will be added to EventNode.
-        ObjectNode domainNode = jsonMapper.createObjectNode();
+        ObjectNode dnsCacheRedisNode = jsonMapper.createObjectNode();
 
         RedisFuture<String> dnsRedisCache = dnsRedisAsyncCommands.get(domainName);
 
@@ -220,13 +229,14 @@ public class EventAsyncEnricher extends RichAsyncFunction<ObjectNode, ObjectNode
             // Else if null, create DNS request and store value in cache.
             if (dnsCacheValue != null) {
                 try {
-                    // Create an ObjectNode with value from already existing key.
-                    ObjectNode dnsCacheRedisNode = jsonMapper.readTree(dnsCacheValue).deepCopy();
+                    // Set DNS Cache Node with value from already existing key.
+                    dnsCacheRedisNode = jsonMapper.readTree(dnsCacheValue).deepCopy();
 
-                    System.out.println("DNS Cache value is : " + dnsCacheRedisNode);
+                    return dnsCacheRedisNode;
 
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    // In case of exception, return an empty node.
+                    return dnsCacheRedisNode;
                 }
             } else {
                 // Resolve domain name.
@@ -237,22 +247,28 @@ public class EventAsyncEnricher extends RichAsyncFunction<ObjectNode, ObjectNode
                 // Add array to Domain Node
                 if (!resolvedAddrArray.isEmpty()) {
                     ArrayNode resolvedAddrArrayNode = jsonMapper.valueToTree(resolvedAddrArray);
-                    domainNode.putArray("ipaddress").addAll(resolvedAddrArrayNode);
-
-                    System.out.println("New resolved domain node for hostname \"" + domainName + "\" is  : " +  domainNode);
+                    dnsCacheRedisNode.putArray("nybble.resolved.address").addAll(resolvedAddrArrayNode);
 
                     // Write JSON String in Redis and set key expiration.
-                    dnsRedisAsyncCommands.set(domainName, jsonMapper.writeValueAsString(domainNode));
+                    dnsRedisAsyncCommands.set(domainName, jsonMapper.writeValueAsString(dnsCacheRedisNode));
                     dnsRedisAsyncCommands.expire(domainName, dnsRedisKeyExpiration);
+
+                    return dnsCacheRedisNode;
+                } else {
+                    // Return empty node if resolved address array is empty
+                    return dnsCacheRedisNode;
                 }
             }
 
-        } catch (InterruptedException | ExecutionException | UnknownHostException | JsonProcessingException e) {
+        } catch (InterruptedException | ExecutionException | JsonProcessingException e) {
             // In case of exception, return an empty node.
-            return domainNode;
+            return dnsCacheRedisNode;
+        } catch (UnknownHostException unknowHost) {
+            // In case of Unknown Host Exception, add an empty node in cache. New resolution will be attempted after key expiration.
+            dnsRedisAsyncCommands.set(domainName, jsonMapper.writeValueAsString(dnsCacheRedisNode));
+            dnsRedisAsyncCommands.expire(domainName, dnsRedisKeyExpiration);
+            return dnsCacheRedisNode;
         }
-
-        return domainNode;
     }
 
     private ObjectNode enrichEvent(ObjectNode mispResultNode) {

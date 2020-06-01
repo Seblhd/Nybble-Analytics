@@ -7594,6 +7594,13 @@
               }
             }
           },
+          "resolved" : {
+            "properties" : {
+              "address" : {
+                "type" : "ip"
+              }
+            }
+          },
           "source" : {
             "properties" : {
               "ip_public" : {
