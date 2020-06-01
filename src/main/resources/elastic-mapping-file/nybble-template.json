@@ -3271,6 +3271,9 @@
           "ip" : {
             "type" : "ip"
           },
+          "ip_public" : {
+          	"type" : "boolean"
+          },
           "mac" : {
             "type" : "keyword",
             "ignore_above" : 1024
@@ -5444,6 +5447,25 @@
               }
             }
           },
+          "attribute" : {
+            "properties" : {
+              "category" : {
+                "type" : "keyword",
+                "ignore_above" : 1024
+              },
+              "tags" : {
+                "type" : "keyword",
+                "ignore_above" : 1024
+              }
+            }
+          },
+          "event" : {
+            "properties" : {
+              "id" : {
+                "type" : "long"               
+              }
+            }
+          },
           "campaign" : {
             "properties" : {
               "aliases" : {
@@ -7570,7 +7592,7 @@
               "ip_public" : {
                 "type" : "boolean"
               }
-            },
+            }
           },
           "source" : {
             "properties" : {
@@ -8701,6 +8723,9 @@
           },
           "ip" : {
             "type" : "ip"
+          },
+          "ip_public" : {
+          	"type" : "boolean"
           },
           "mac" : {
             "type" : "keyword",

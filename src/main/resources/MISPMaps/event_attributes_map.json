@@ -75,7 +75,7 @@
 		{
 			"mispAttribute" : "hostname",
 			"type" : "domain",
-			"resolveName" : false
+			"resolveName" : true
 		}]
 	},
 	"dns.question.registered_domain" : {

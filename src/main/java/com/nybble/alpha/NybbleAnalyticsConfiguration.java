@@ -23,13 +23,12 @@ public class NybbleAnalyticsConfiguration {
     private String redisServerIp;
     private Integer redisServerPort;
     private Integer redisConnectionTimeOut;
-    private Long redisKeyExpire;
+    private Long redisMispKeyExpire;
+    private Long redisDnsKeyExpire;
     private Integer redisIoThreads;
     private Integer redisComputeThreads;
-    private Integer redisPoolMaxWait;
-    private Boolean redisPoolTestOnBorrow;
-    private Boolean redisPoolTestOnReturn;
-    private Boolean redisPoolTestWhileIdle;
+    private Integer redisMispCacheId;
+    private Integer redisDnsCacheId;
     private String elasticsearchHost;
     private Integer elasticsearchPort;
     private String elasticsearchProto;
@@ -93,13 +92,12 @@ public class NybbleAnalyticsConfiguration {
             this.redisServerIp = nybbleAnalyticsConf.getString("redis.server.host");
             this.redisServerPort = nybbleAnalyticsConf.getInt("redis.server.port");
             this.redisConnectionTimeOut = nybbleAnalyticsConf.getInt("redis.server.connection.timeout");
-            this.redisKeyExpire = nybbleAnalyticsConf.getLong("redis.key.expire");
+            this.redisMispKeyExpire = nybbleAnalyticsConf.getLong("redis.misp.key.expire");
+            this.redisDnsKeyExpire = nybbleAnalyticsConf.getLong("redis.dns.key.expire");
             this.redisIoThreads = nybbleAnalyticsConf.getInt("redis.io.threads");
             this.redisComputeThreads = nybbleAnalyticsConf.getInt("redis.compute.threads");
-            this.redisPoolMaxWait = nybbleAnalyticsConf.getInt("redis.pool.maxwait");
-            this.redisPoolTestOnBorrow = nybbleAnalyticsConf.getBoolean("redis.pool.testonborrow");
-            this.redisPoolTestOnReturn = nybbleAnalyticsConf.getBoolean("redis.pool.testonreturn");
-            this.redisPoolTestWhileIdle = nybbleAnalyticsConf.getBoolean("redis.pool.testwhileidle");
+            this.redisMispCacheId = nybbleAnalyticsConf.getInt("redis.misp.cache.id");
+            this.redisDnsCacheId = nybbleAnalyticsConf.getInt("redis.dns.cache.id");
 
             // Elasticsearch parameters
             this.elasticsearchHost = nybbleAnalyticsConf.getString("elasticsearch.host");
@@ -186,19 +184,17 @@ public class NybbleAnalyticsConfiguration {
 
     public Integer getRedisConnectionTimeOut() { return redisConnectionTimeOut; }
 
-    public Long getRedisKeyExpire() { return redisKeyExpire; }
+    public Long getRedisMispKeyExpire() { return redisMispKeyExpire; }
+
+    public Long getRedisDnsKeyExpire() { return redisDnsKeyExpire; }
 
     public Integer getRedisIoThreads() { return redisIoThreads; }
 
     public Integer getRedisComputeThreads() { return redisComputeThreads; }
 
-    public Integer getRedisPoolMaxWait() { return redisPoolMaxWait; }
+    public Integer getRedisMispCacheId() { return redisMispCacheId; }
 
-    public Boolean getRedisPoolTestOnBorrow() { return redisPoolTestOnBorrow; }
-
-    public Boolean getRedisPoolTestOnReturn() { return redisPoolTestOnReturn; }
-
-    public Boolean getRedisPoolTestWhileIdle() { return redisPoolTestWhileIdle; }
+    public Integer getRedisDnsCacheId() { return redisDnsCacheId; }
 
     public String getGlobalMapFile() { return globalMapFile; }
 
