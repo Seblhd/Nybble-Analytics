@@ -26,7 +26,7 @@ under the License.
 	<packaging>jar</packaging>
 
 	<name>Nybble Analytics</name>
-	<url>http://www.myorganization.org</url>
+	<url>https://docs.nybble-analytics.io</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -67,8 +67,6 @@ under the License.
 			<artifactId>commons-beanutils</artifactId>
 			<version>1.9.4</version>
 		</dependency>
-		<!-- Apache Flink dependencies -->
-		<!-- These dependencies are provided, because they should not be packaged into the JAR file. -->
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-java</artifactId>
@@ -140,6 +138,33 @@ under the License.
 				</configuration>
 			</plugin>
 
+			<!-- Maven Plugin assembly to create zip, tar, jar file with full project-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>3.3.0</version>
+				<configuration>
+					<descriptors>
+						<descriptor>src/main/resources/assembly/nybble-src.xml</descriptor>
+					</descriptors>
+					<finalName>NybbleAnalytics</finalName>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>lib</classpathPrefix>
+							<mainClass>com.nybble.alpha.NybbleAnalytics</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			<!-- We use the maven-shade plugin to create a fat jar that contains all necessary dependencies. -->
 			<!-- Change the value of <mainClass>...</mainClass> if your program entry point changes. -->
 			<plugin>
@@ -176,7 +201,7 @@ under the License.
 							</filters>
 							<transformers>
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>com.nybble.alpha.StreamingJob</mainClass>
+									<mainClass>com.nybble.alpha.NybbleAnalytics</mainClass>
 								</transformer>
 							</transformers>
 						</configuration>

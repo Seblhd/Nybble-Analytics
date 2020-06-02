@@ -54,6 +54,12 @@ public class NybbleAnalytics {
 		// Get configuration from config file.
 		NybbleAnalyticsConfiguration nybbleAnalyticsConfiguration = new NybbleAnalyticsConfiguration();
 
+		// Disable infinite DNS Cache for Application and set ttl to 60 secs.
+		java.security.Security.setProperty("networkaddress.cache.ttl" , "60");
+
+		// Disable infinite negative DNS Cache for Application and set ttl to 60 secs.
+		java.security.Security.setProperty("networkaddress.cache.negative.ttl" , "60");
+
 		// Get Elasticsearch REST Client Timeout values
 		final Integer ES_REST_CON_TIMEOUT = nybbleAnalyticsConfiguration.getElasticsearchRestConTimeOut();
 		final Integer ES_REST_REQ_TIMEOUT = nybbleAnalyticsConfiguration.getElasticsearchRestReqTimeOut();
