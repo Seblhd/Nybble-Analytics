@@ -267,13 +267,6 @@ public class NybbleAnalytics {
 				.addSink(esSinkDataBuilder.build())
 				.setParallelism(nybbleAnalyticsConfiguration.getElasticsearchEventStreamParallelism());
 
-		securityEnrichEventsStream.map(new MapFunction<ObjectNode, Integer>() {
-			@Override
-			public Integer map(ObjectNode jsonNodes) throws Exception {
-				return 1;
-			}
-		}).timeWindowAll(Time.seconds(1)).sum(0).print();
-
 		// Create Security Event (From Flink Stream) Stream and process for rule match.
 		DataStream<ObjectNode> ruleEngineStream = securityEventsStream
 				.process(new MultipleEventProcess())
