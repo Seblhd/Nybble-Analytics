@@ -1,5 +1,6 @@
 package com.nybble.alpha.control_stream;
 
+import com.nybble.alpha.NybbleFlinkConfiguration;
 import com.nybble.alpha.alert_engine.LogSourceMatcher;
 import com.nybble.alpha.event_stream.EventStreamTrigger;
 import com.nybble.alpha.event_stream.MultipleEventProcess;
@@ -7,6 +8,8 @@ import com.nybble.alpha.rule_engine.MultiYamlConverter;
 import com.nybble.alpha.rule_engine.RuleEngine;
 import com.nybble.alpha.rule_engine.SelectionConverter;
 import com.nybble.alpha.rule_mapping.SigmaMappingFileBuilder;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.shaded.guava18.com.google.common.hash.Hashing;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.log4j.Logger;
@@ -15,6 +18,7 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,7 +37,7 @@ public class SigmaRuleWatchThread implements Runnable {
     private static Map<String, ObjectNode> sigmaRuleMap = new HashMap<>();
     private static Map<String, ObjectNode> sigmaRuleSaveStateMap = new HashMap<>();
     private static Logger controlStreamLogger = Logger.getLogger("controlStreamFile");
-
+    private static Configuration nybbleFlinkConfiguration = NybbleFlinkConfiguration.getNybbleConfiguration();
     private static ObjectMapper jsonMapper = new ObjectMapper();
     private static Yaml yaml = new Yaml(new SafeConstructor());
 
@@ -41,8 +45,10 @@ public class SigmaRuleWatchThread implements Runnable {
     public SigmaRuleWatchThread(WatchService sigmaWatchService, Path sigmaFolder) {
         sigmaRuleWatchService = sigmaWatchService;
         sigmaRuleFolder = sigmaFolder.toString();
-        // Initialize list containing all Sigma rules converted to JSON
+        // Initialize list containing all Sigma rules converted to JSON.
         initSigmaRuleCollection(sigmaFolder);
+        // Set Values from Properties file to Flink configuration.
+        NybbleFlinkConfiguration.setNybbleConfiguration();
     }
 
     @Override
@@ -81,15 +87,16 @@ public class SigmaRuleWatchThread implements Runnable {
             EventStreamTrigger.setRuleFileCount(ruleFileCount);
 
             for (String path : sigmaRulesList) {
+
                 // Set current rule path to be retrieve in Map File Creation.
-                SelectionConverter.setRulePath(path);
+                SelectionConverter.setRulePath(path, nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.SIGMA_MAPS_FOLDER_PATH));
                 // For each Sigma Rule in YAML file, create JSONPath rule
                 createSigmaRule(path);
             }
             EventStreamTrigger.setRuleBroadcastCount(ruleBroadcastCount);
 
         } catch (Exception e) {
-            controlStreamLogger.error("Error while trying to retrieve Sigma Rules files.\n" + e.toString());
+            controlStreamLogger.error("Error while trying to retrieve Sigma Rules files. Sigma Folder value was : " + sigmaFolder.toString() + "\n" + e.toString());
         }
 
         MultipleEventProcess.setSigmaLogSource(sigmaLogSourceList);
@@ -97,11 +104,11 @@ public class SigmaRuleWatchThread implements Runnable {
 
     private void setSigmaRuleCollection(String watchEventKind, String watchFile) throws Exception {
 
-        String ruleHash = org.apache.commons.codec.digest.DigestUtils.sha256Hex(sigmaRuleFolder + "/" + watchFile);
+        String ruleHash = Hashing.sha256().hashString(sigmaRuleFolder + "/" + watchFile, StandardCharsets.UTF_8).toString();
         String path = sigmaRuleFolder + "/" + watchFile;
 
         // Set current rule path to be retrieve in Map File Creation.
-        SelectionConverter.setRulePath(path);
+        SelectionConverter.setRulePath(path, nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.SIGMA_MAPS_FOLDER_PATH));
 
         if (watchEventKind.equals("ENTRY_CREATE")) {
 
@@ -140,7 +147,7 @@ public class SigmaRuleWatchThread implements Runnable {
                 yamlDocuments.add(sigmaJsonObject);
             }
         } catch (Throwable e) {
-            controlStreamLogger.error("Error while trying to retrieve Sigma Rules files.\n" + e.toString());
+            controlStreamLogger.error("Error while trying to retrieve Sigma Rules files. Sigma Rule Path value was : " + sigmaRulePath + "\n" + e.toString());
         }
 
         // If only 1 Yaml Document is in List then process as Single Documents YAML rule.
@@ -150,8 +157,8 @@ public class SigmaRuleWatchThread implements Runnable {
 
             sigmaConvertedNode = new RuleEngine().RuleInit(yamlDocuments.get(0));
 
-            sigmaRuleMap.put(org.apache.commons.codec.digest.DigestUtils.sha256Hex(sigmaRulePath), sigmaConvertedNode);
-            sigmaRuleSaveStateMap.put(org.apache.commons.codec.digest.DigestUtils.sha256Hex(sigmaRulePath), sigmaConvertedNode);
+            sigmaRuleMap.put(Hashing.sha256().hashString(sigmaRulePath, StandardCharsets.UTF_8).toString(), sigmaConvertedNode);
+            sigmaRuleSaveStateMap.put(Hashing.sha256().hashString(sigmaRulePath, StandardCharsets.UTF_8).toString(), sigmaConvertedNode);
             // Add "category" and "product" from logsource field of rule in list
             createSigmaLogSourceList(yamlDocuments.get(0));
             // Increment the rule broadcast count after each collect. When broadcast count is > 1
@@ -172,8 +179,8 @@ public class SigmaRuleWatchThread implements Runnable {
 
                 sigmaConvertedNode = new RuleEngine().RuleInit(mergedYamlDoc);
                 //System.out.println("Sigma converted node is : " + sigmaConvertedNode);
-                sigmaRuleMap.put(org.apache.commons.codec.digest.DigestUtils.sha256Hex(sigmaRulePath), sigmaConvertedNode);
-                sigmaRuleSaveStateMap.put(org.apache.commons.codec.digest.DigestUtils.sha256Hex(sigmaRulePath), sigmaConvertedNode);
+                sigmaRuleMap.put(Hashing.sha256().hashString(sigmaRulePath, StandardCharsets.UTF_8).toString(), sigmaConvertedNode);
+                sigmaRuleSaveStateMap.put(Hashing.sha256().hashString(sigmaRulePath, StandardCharsets.UTF_8).toString(), sigmaConvertedNode);
                 // Add "category" and "product" from logsource field of rule in list
                 createSigmaLogSourceList(mergedYamlDoc);
                 // Increment the rule broadcast count after each collect. When broadcast count is > 1
@@ -235,7 +242,7 @@ public class SigmaRuleWatchThread implements Runnable {
                         yamlDocuments.add(sigmaJsonObject);
                     }
                 } catch (Throwable e) {
-                    controlStreamLogger.error("Error while trying to retrieve Sigma Rules files.\n" + e.toString());
+                    controlStreamLogger.error("Error while trying to retrieve Sigma Rules files. Path value was : " + path + "\n" + e.toString());
                 }
 
                 // If only 1 Yaml Document is in List then process as Single Documents YAML rule.
@@ -257,7 +264,7 @@ public class SigmaRuleWatchThread implements Runnable {
                 }
             }
         } catch (Exception e) {
-            controlStreamLogger.error("Error while trying to retrieve Sigma Rules files.\n" + e.toString());
+            controlStreamLogger.error("Error while trying to retrieve Sigma Rules files. Sigma Rule Folder value was : " + sigmaRuleFolder + "\n" + e.toString());
         }
         // Update Sigma Source list.
         MultipleEventProcess.setSigmaLogSource(sigmaLogSourceList);

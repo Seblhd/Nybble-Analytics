@@ -48,7 +48,7 @@ public class SigmaFieldMapWatchThread implements Runnable {
 
                 // Update the Mapping Map before creation and broadcast of rule with modification.
                 // Do not create/update rule when Map file is added because it can be preparation and corresponding rule is probably not existing.
-                SelectionConverter.setRulePath(watchFile);
+                SelectionConverter.setRulePath(watchFile, sigmaMapsFolder);
                 SelectionConverter.setFieldMappingMap(sigmaCreatedMapFile);
 
                 rulesMappingLogger.info("Mapping file \"" + watchFile + "\" has been added to Maps folder. Content has been added to Mapping map for future rule fields mapping.");
@@ -60,7 +60,7 @@ public class SigmaFieldMapWatchThread implements Runnable {
                 String sigmaModifiedMapMFile = sigmaMapsFolder + "/" + watchFile;
 
                 // Update the Mapping Map before creation and broadcast of rule with modification.
-                SelectionConverter.setRulePath(watchFile);
+                SelectionConverter.setRulePath(watchFile, sigmaMapsFolder);
                 SelectionConverter.setFieldMappingMap(sigmaModifiedMapMFile);
 
                 // Create new rules that will use new Mapping value before broadcast.

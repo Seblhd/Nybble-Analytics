@@ -1,6 +1,6 @@
 package com.nybble.alpha.event_enrichment;
 
-import com.nybble.alpha.NybbleAnalyticsConfiguration;
+import com.nybble.alpha.NybbleFlinkConfiguration;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.RedisURI;
@@ -37,45 +37,43 @@ public class EventAsyncEnricher extends RichAsyncFunction<ObjectNode, ObjectNode
     private Long dnsRedisKeyExpiration = 86400L;
     private ObjectMapper jsonMapper = new ObjectMapper();
     private static Logger enrichmentEngineLogger = Logger.getLogger("enrichmentEngineFile");
+    private Configuration nybbleFlinkConfiguration = NybbleFlinkConfiguration.getNybbleConfiguration();
 
     @Override
     public void open(Configuration parameters) throws Exception {
         super.open(parameters);
 
-        // Create a configuration Object.
-        NybbleAnalyticsConfiguration nybbleAnalyticsConfiguration = new NybbleAnalyticsConfiguration();
-
         // Set Redis Resources configuration.
         redisClientResources = DefaultClientResources.builder()
-                .computationThreadPoolSize(nybbleAnalyticsConfiguration.getRedisComputeThreads())
-                .ioThreadPoolSize(nybbleAnalyticsConfiguration.getRedisIoThreads())
+                .computationThreadPoolSize(nybbleFlinkConfiguration.getInteger(NybbleFlinkConfiguration.REDIS_COMPUTE_THREADS_NUM))
+                .ioThreadPoolSize(nybbleFlinkConfiguration.getInteger(NybbleFlinkConfiguration.REDIS_IO_THREADS_NUM))
                 .build();
 
         // Set MISP Redis URI configuration.
         RedisURI mispRedisURI = RedisURI.Builder.redis(
-                nybbleAnalyticsConfiguration.getRedisServerHost(),
-                nybbleAnalyticsConfiguration.getRedisServerPort())
-                .withDatabase(nybbleAnalyticsConfiguration.getRedisMispCacheId())
+                nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.REDIS_SERVER_HOST),
+                nybbleFlinkConfiguration.getInteger(NybbleFlinkConfiguration.REDIS_SERVER_PORT))
+                .withDatabase(nybbleFlinkConfiguration.getInteger(NybbleFlinkConfiguration.REDIS_MISP_CACHE_DB_ID))
                 .build();
 
         // Set DNS Redis URI configuration.
         RedisURI dnsRedisURI = RedisURI.Builder.redis(
-                nybbleAnalyticsConfiguration.getRedisServerHost(),
-                nybbleAnalyticsConfiguration.getRedisServerPort())
-                .withDatabase(nybbleAnalyticsConfiguration.getRedisDnsCacheId())
+                nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.REDIS_SERVER_HOST),
+                nybbleFlinkConfiguration.getInteger(NybbleFlinkConfiguration.REDIS_SERVER_PORT))
+                .withDatabase(nybbleFlinkConfiguration.getInteger(NybbleFlinkConfiguration.REDIS_DNS_CACHE_DB_ID))
                 .build();
 
         mispRedisClient = RedisClient.create(mispRedisURI);
-        mispRedisClient.setDefaultTimeout(Duration.ofMillis(nybbleAnalyticsConfiguration.getRedisConnectionTimeOut()));
+        mispRedisClient.setDefaultTimeout(Duration.ofMillis(nybbleFlinkConfiguration.getInteger(NybbleFlinkConfiguration.REDIS_SERVER_CONNECTION_TIMEOUT)));
         mispRedisAsyncCommands = mispRedisClient.connect().async();
 
         dnsRedisClient = RedisClient.create(dnsRedisURI);
-        dnsRedisClient.setDefaultTimeout(Duration.ofMillis(nybbleAnalyticsConfiguration.getRedisConnectionTimeOut()));
+        dnsRedisClient.setDefaultTimeout(Duration.ofMillis(nybbleFlinkConfiguration.getInteger(NybbleFlinkConfiguration.REDIS_SERVER_CONNECTION_TIMEOUT)));
         dnsRedisAsyncCommands = dnsRedisClient.connect().async();
 
         // Set Key expiration from config file
-        mispRedisKeyExpiration = nybbleAnalyticsConfiguration.getRedisMispKeyExpire();
-        dnsRedisKeyExpiration = nybbleAnalyticsConfiguration.getRedisDnsKeyExpire();
+        mispRedisKeyExpiration = nybbleFlinkConfiguration.getLong(NybbleFlinkConfiguration.REDIS_MISP_CACHE_KEY_EXPIRATION);
+        dnsRedisKeyExpiration = nybbleFlinkConfiguration.getLong(NybbleFlinkConfiguration.REDIS_DNS_CACHE_KEY_EXPIRATION);
     }
 
     @Override

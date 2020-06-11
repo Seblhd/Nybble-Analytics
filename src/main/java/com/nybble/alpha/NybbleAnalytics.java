@@ -12,6 +12,7 @@ import com.nybble.alpha.event_stream.EventWindowFunction;
 import com.nybble.alpha.event_stream.MultipleEventProcess;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RuntimeContext;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.flink.streaming.api.datastream.AsyncDataStream;
@@ -51,8 +52,11 @@ public class NybbleAnalytics {
 		// set up the streaming execution environment
 		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-		// Get configuration from config file.
-		NybbleAnalyticsConfiguration nybbleAnalyticsConfiguration = new NybbleAnalyticsConfiguration();
+		// Initialize Nybble Flink configuration with value from Nybble Analytics Configuration.
+		NybbleFlinkConfiguration.setNybbleConfiguration();
+
+		// Get Nybble Flink configuration after initialization.
+		Configuration nybbleFlinkConfiguration = NybbleFlinkConfiguration.getNybbleConfiguration();
 
 		// Disable infinite DNS Cache for Application and set ttl to 60 secs.
 		java.security.Security.setProperty("networkaddress.cache.ttl" , "60");
@@ -61,13 +65,17 @@ public class NybbleAnalytics {
 		java.security.Security.setProperty("networkaddress.cache.negative.ttl" , "60");
 
 		// Get Elasticsearch REST Client Timeout values
-		final Integer ES_REST_CON_TIMEOUT = nybbleAnalyticsConfiguration.getElasticsearchRestConTimeOut();
-		final Integer ES_REST_REQ_TIMEOUT = nybbleAnalyticsConfiguration.getElasticsearchRestReqTimeOut();
-		final Integer ES_REST_SCK_TIMEOUT = nybbleAnalyticsConfiguration.getElasticsearchRestSckTimeOut();
+		final Integer ES_REST_CON_TIMEOUT = nybbleFlinkConfiguration.getInteger(NybbleFlinkConfiguration.ELASTICSEARCH_REST_CONNECTION_TIMEOUT);
+		final Integer ES_REST_REQ_TIMEOUT = nybbleFlinkConfiguration.getInteger(NybbleFlinkConfiguration.ELASTICSEARCH_REST_REQUEST_TIMEOUT);
+		final Integer ES_REST_SCK_TIMEOUT = nybbleFlinkConfiguration.getInteger(NybbleFlinkConfiguration.ELASTICSEARCH_REST_SOCKET_TIMEOUT);
 
 		// Get Elasticsearch indexes name for Event and Alert indexes.
-		final String ES_EVENT_INDEX_NAME = nybbleAnalyticsConfiguration.getElasticsearchEventIndex();
-		final String ES_ALERT_INDEX_NAME = nybbleAnalyticsConfiguration.getElasticsearchAlertIndex();
+		final String ES_EVENT_INDEX_NAME = nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.ELASTICSEARCH_EVENT_INDEX_NAME);
+		final String ES_ALERT_INDEX_NAME = nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.ELASTICSEARCH_ALERT_INDEX_NAME);
+
+		// Get Elasticsearch stream parallelism for Event and Alert indexes.
+		final Integer ES_EVENT_STREAM_PARALLELISM = nybbleFlinkConfiguration.getInteger(NybbleFlinkConfiguration.ELASTICSEARCH_EVENT_STREAM_PARALLELISM);
+		final Integer ES_ALERT_STREAM_PARALLELISM = nybbleFlinkConfiguration.getInteger(NybbleFlinkConfiguration.ELASTICSEARCH_ALERT_STREAM_PARALLELISM);
 
 		// Initialize MISP Enrichment.
 		MispEnrichment nybbleMispEnrich = new MispEnrichment();
@@ -80,41 +88,63 @@ public class NybbleAnalytics {
 
 		// Set up Kafka environment
 		Properties kafkaProperties = new Properties();
-		kafkaProperties.setProperty("bootstrap.servers", nybbleAnalyticsConfiguration.getKafkaBootstrapServers());
-		kafkaProperties.setProperty("group.id", nybbleAnalyticsConfiguration.getKafkaGroupId());
+		kafkaProperties.setProperty("bootstrap.servers", nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.KAFKA_BOOTSTRAP_SERVERS));
+		kafkaProperties.setProperty("group.id", nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.KAFKA_GROUP_ID));
 
 		// Create a Kafka Admin Client
 		AdminClient kafkaAdminClient = AdminClient.create(kafkaProperties);
 
-		// Create a Kafka consumer where topic is "windows-logs", using JSON Deserialization schema and properties provided above. Read from the beginning.
+		// Create a Kafka consumer with list of topics or topics regex from configuration file and using JSON Deserialization schema and properties provided above.
 		JSONKeyValueDeserializationSchema logsSchema = new JSONKeyValueDeserializationSchema(false);
 
-		//Check if topic list is pattern-based or is a list of topics.
-		if (nybbleAnalyticsConfiguration.getKafkaTopicsName() != null &&
-				nybbleAnalyticsConfiguration.getKafkaTopicsPattern() == null) {
+		String kafkaTopicsNameList = nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.KAFKA_TOPIC_NAME_LIST);
+		String kafkaTopicsNameRegex = nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.KAFKA_TOPIC_NAME_REGEX);
+
+		// Get topics from list or compile regex to get topics from regex.
+		if (!kafkaTopicsNameList.equals("") && kafkaTopicsNameRegex.equals("")) {
+
+			// Push all comma separated values from String to List.
+			List<String> kafkaTopicsList = Arrays.asList(kafkaTopicsNameList.split("\\s*,\\s*"));
 			// Get topics from list.
-			securityLogsConsumer = new FlinkKafkaConsumer(nybbleAnalyticsConfiguration.getKafkaTopicsName(), logsSchema, kafkaProperties);
-			// Get number of partitions per topic and add to total number of partitions for all topics.
-			nybbleAnalyticsConfiguration.getKafkaTopicsName().forEach(topic -> {
+			securityLogsConsumer = new FlinkKafkaConsumer(kafkaTopicsList, logsSchema, kafkaProperties);
+
+		} else if (kafkaTopicsNameList.equals("") && !kafkaTopicsNameRegex.equals("")) {
+
+			// Compile pattern and autodiscover topics from pattern.
+			securityLogsConsumer = new FlinkKafkaConsumer(java.util.regex.Pattern.compile(kafkaTopicsNameRegex), logsSchema, kafkaProperties);
+
+		} else if (!kafkaTopicsNameList.equals("")) {
+
+			// Topic list and topics pattern has both been provided. By default, use topic list.
+			System.out.println("Topic list and topics pattern have both been provided. By default, topic list is used.");
+			List<String> kafkaTopicsList = Arrays.asList(kafkaTopicsNameList.split(","));
+			// Get topics from list.
+			securityLogsConsumer = new FlinkKafkaConsumer(kafkaTopicsList, logsSchema, kafkaProperties);
+
+		}
+
+		// Find number of Total partitions for all topics from configuration file.
+		if (!kafkaTopicsNameList.equals("")) {
+
+			// Push all comma separated values from String to List.
+			List<String> kafkaTopicsList = Arrays.asList(kafkaTopicsNameList.split("\\s*,\\s*"));
+
+			kafkaTopicsList.forEach(topic -> {
 				try {
-					int topicSize = kafkaAdminClient.describeTopics(nybbleAnalyticsConfiguration.getKafkaTopicsName()).values().get(topic).get().partitions().size();
+					int topicSize = kafkaAdminClient.describeTopics(kafkaTopicsList).values().get(topic).get().partitions().size();
 					totalKafkaTopicPartitions += topicSize;
 				} catch (InterruptedException | ExecutionException e) {
 					e.printStackTrace();
 				}
 			});
-		} else if (nybbleAnalyticsConfiguration.getKafkaTopicsName() == null &&
-				nybbleAnalyticsConfiguration.getKafkaTopicsPattern() != null) {
-			// Compile pattern and autodiscover topics from pattern.
-			securityLogsConsumer = new FlinkKafkaConsumer(java.util.regex.Pattern.compile(nybbleAnalyticsConfiguration.getKafkaTopicsPattern()), logsSchema, kafkaProperties);
+		} else if (!kafkaTopicsNameRegex.equals("")) {
 			// Get number of partitions per topic and add to total number of partitions for all topics.
-
 			// Get list of all topics to find corresponding pattern ones and count partitions.
-			Set<String> kafkaTopics = kafkaAdminClient.listTopics().names().get();
+			Set<String> kafkaTopicsRegex = kafkaAdminClient.listTopics().names().get();
 			ArrayList<String> foundTopics = new ArrayList<>();
 
-			kafkaTopics.forEach(topics -> {
-				Matcher topicPattern = Pattern.compile(nybbleAnalyticsConfiguration.getKafkaTopicsPattern()).matcher(topics);
+			kafkaTopicsRegex.forEach(topics -> {
+				Matcher topicPattern = Pattern.compile(kafkaTopicsNameRegex).matcher(topics);
 
 				while (topicPattern.find()) {
 					foundTopics.add(topicPattern.group(0));
@@ -129,28 +159,10 @@ public class NybbleAnalytics {
 					e.printStackTrace();
 				}
 			});
-
-			//if (totalKafkaTopicPartitions <= env.getParallelism()) {
-			//	securityLogsConsumer.getRuntimeContext().getExecutionConfig().setParallelism(totalKafkaTopicPartitions);
-			//}
-
-		} else if (nybbleAnalyticsConfiguration.getKafkaTopicsName() != null &&
-				nybbleAnalyticsConfiguration.getKafkaTopicsPattern() != null) {
-			// Topic list and topics pattern has both been provided. By default, use topic list.
-			System.out.println("Topic list and topics pattern have both been provided. By default, topic list is used.");
-			securityLogsConsumer = new FlinkKafkaConsumer(nybbleAnalyticsConfiguration.getKafkaTopicsName(), logsSchema, kafkaProperties);
-			// Get number of partitions per topic and add to total number of partitions for all topics.
-			nybbleAnalyticsConfiguration.getKafkaTopicsName().forEach(topic -> {
-				try {
-					int topicSize = kafkaAdminClient.describeTopics(nybbleAnalyticsConfiguration.getKafkaTopicsName()).values().get(topic).get().partitions().size();
-					totalKafkaTopicPartitions += topicSize;
-				} catch (InterruptedException | ExecutionException e) {
-					e.printStackTrace();
-				}
-			});
 		}
 
-		switch (nybbleAnalyticsConfiguration.getStartPosition()) {
+		// Set Kafka start position with value from config file.
+		switch (nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.KAFKA_START_POSITION)) {
 			case "setStartFromEarliest":
 				securityLogsConsumer.setStartFromEarliest();
 				break;
@@ -161,8 +173,8 @@ public class NybbleAnalytics {
 				securityLogsConsumer.setStartFromGroupOffsets();
 				break;
 			case "setStartFromTimestamp":
-				if (nybbleAnalyticsConfiguration.getStartEpochTimestamp() != null) {
-					securityLogsConsumer.setStartFromTimestamp(nybbleAnalyticsConfiguration.getStartEpochTimestamp());
+				if (nybbleFlinkConfiguration.getLong(NybbleFlinkConfiguration.KAFKA_START_EPOCH_TIMESTAMP) != 0L) {
+					securityLogsConsumer.setStartFromTimestamp(nybbleFlinkConfiguration.getLong(NybbleFlinkConfiguration.KAFKA_START_EPOCH_TIMESTAMP));
 				} else {
 					System.out.println("Epoch timestamp in millisecond must be set to use start position from timestamp.");
 				}
@@ -171,9 +183,9 @@ public class NybbleAnalytics {
 
 		// Set up ElasticSearch environment
 		List<HttpHost> httpHosts = new ArrayList<>();
-		httpHosts.add(new HttpHost(nybbleAnalyticsConfiguration.getElasticsearchHost(),
-				nybbleAnalyticsConfiguration.getElasticsearchPort(),
-				nybbleAnalyticsConfiguration.getElasticsearchProto()));
+		httpHosts.add(new HttpHost(nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.ELASTICSEARCH_HOST),
+				nybbleFlinkConfiguration.getInteger(NybbleFlinkConfiguration.ELASTICSEARCH_PORT),
+				nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.ELASTICSEARCH_PROTO)));
 
 		// Create a ElasticSearch sink where index is "events" to store events from Kafka.
 		ElasticsearchSink.Builder<String> esSinkDataBuilder = new ElasticsearchSink.Builder<>(httpHosts, new ElasticsearchSinkFunction<String>() {
@@ -242,17 +254,22 @@ public class NybbleAnalytics {
 		});
 
 		// Configuration for the bulk requests; this instructs the sink to emit after every element, otherwise they would be buffered
-		esSinkDataBuilder.setBulkFlushMaxActions(nybbleAnalyticsConfiguration.getElasticsearchEventBulkFlushMaxActions());
-		esSinkAlertBuilder.setBulkFlushMaxActions(nybbleAnalyticsConfiguration.getElasticsearchAlertBulkFlushMaxActions());
+		esSinkDataBuilder.setBulkFlushMaxActions(nybbleFlinkConfiguration.getInteger(NybbleFlinkConfiguration.ELASTICSEARCH_EVENT_MAX_BULK_FLUSH_ACTION));
+		esSinkAlertBuilder.setBulkFlushMaxActions(nybbleFlinkConfiguration.getInteger(NybbleFlinkConfiguration.ELASTICSEARCH_ALERT_MAX_BULK_FLUSH_ACTION));
+
+		SigmaSourceFunction sigmaRulesSource = new SigmaSourceFunction();
+		sigmaRulesSource.open();
 
 		// Create Control Event (Sigma converted rules) Stream
-		DataStream<ObjectNode> sigmaRuleSourceStream = env.addSource(new SigmaSourceFunction())
+		DataStream<ObjectNode> sigmaRuleSourceStream = env.addSource(sigmaRulesSource)
+				.name("Control Stream : Sigma rules")
 				.process(new MultipleRulesProcess())
 				.keyBy(new ControlDynamicKey());
 		sigmaRuleSourceStream.print();
 
 		// Create Security Event Stream (From Kafka Stream)
 		DataStream<ObjectNode> securityEventsStream = env.addSource(securityLogsConsumer)
+				.name("Event Stream : Kafka consumer")
 				.map(new MapFunction<ObjectNode, ObjectNode>() {
 					@Override
 					public ObjectNode map(ObjectNode eventNodes) {
@@ -265,7 +282,8 @@ public class NybbleAnalytics {
 		// Send Enriched Events to Elasticsearch
 		securityEnrichEventsStream.map(ObjectNode::toString)
 				.addSink(esSinkDataBuilder.build())
-				.setParallelism(nybbleAnalyticsConfiguration.getElasticsearchEventStreamParallelism());
+				.setParallelism(ES_EVENT_STREAM_PARALLELISM)
+				.name("Elasticsearch Events");
 
 		// Create Security Event (From Flink Stream) Stream and process for rule match.
 		DataStream<ObjectNode> ruleEngineStream = securityEventsStream
@@ -288,7 +306,8 @@ public class NybbleAnalytics {
 		// Send alerts to Elasticsearch
 		alertStream.map(Objects::toString)
 				.addSink(esSinkAlertBuilder.build())
-				.setParallelism(nybbleAnalyticsConfiguration.getElasticsearchAlertStreamParallelism());
+				.setParallelism(ES_ALERT_STREAM_PARALLELISM)
+				.name("Elasticsearch Alerts");
 
 		// execute program
 		env.execute("Flink Nybble Analytics SIEM");

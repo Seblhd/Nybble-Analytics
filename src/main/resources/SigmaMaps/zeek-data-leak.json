@@ -1,0 +1,16 @@
+{
+  "id" : "b8d5604b98c7d4e121a431b56c0bb7c8",
+  "map" : {
+    "detection" : {
+      "dest_port" : "destination.port",
+      "event_dataset" : "event.dataset",
+      "bytes_out" : "client.bytes",
+      "dest_addr" : "destination.address"
+    },
+    "fields" : {
+      "dest_addr" : "destination.address",
+      "src_host" : "host.hostname",
+      "src_address" : "message"
+    }
+  }
+}

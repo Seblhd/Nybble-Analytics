@@ -1,7 +1,8 @@
 package com.nybble.alpha.control_stream;
 
-import com.nybble.alpha.NybbleAnalyticsConfiguration;
+import com.nybble.alpha.NybbleFlinkConfiguration;
 import com.nybble.alpha.rule_mapping.SigmaFieldMapWatchThread;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.log4j.Logger;
@@ -19,18 +20,26 @@ public class SigmaSourceFunction implements SourceFunction<ObjectNode> {
     private SigmaRuleWatchThread sigmaRulesWatchThread;
     private Map<String, ObjectNode> sigmaStreamMap = new ConcurrentHashMap<>();
     private static Logger controlStreamLogger = Logger.getLogger("controlStreamFile");
+    private Configuration nybbleFlinkConfiguration = NybbleFlinkConfiguration.getNybbleConfiguration();
+    private String sigmaRulesPath;
+    private String sigmaMapsPath;
+
+    public void open() {
+
+        // Retrieve Rules folder path from config file.
+        sigmaRulesPath = nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.SIGMA_RULES_FOLDER_PATH);
+        // Retrieve Maps folder path from config file.
+        sigmaMapsPath = nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.SIGMA_MAPS_FOLDER_PATH);
+    }
 
     @Override
     public void run(SourceContext<ObjectNode> sCtx) {
 
-        // Create new Nybble Analytics configuration object to get path.
-        NybbleAnalyticsConfiguration nybbleAnalyticsConfiguration = new NybbleAnalyticsConfiguration();
-
         // Set path for Rules folder.
-        Path sigmaRulesFolderPath = Paths.get(nybbleAnalyticsConfiguration.getSigmaRulesFolder());
+        Path sigmaRulesFolderPath = Paths.get(sigmaRulesPath);
 
         // Set path for Maps folder.
-        Path sigmaMapsFolderPath = Paths.get(nybbleAnalyticsConfiguration.getSigmaMapsFolder());
+        Path sigmaMapsFolderPath = Paths.get(sigmaMapsPath);
 
         try {
             // Create a Watch Service and Thread to monitor Sigma Rules Folder.

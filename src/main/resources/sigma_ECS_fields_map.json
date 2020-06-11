@@ -152,6 +152,11 @@
                 "ParentProcessGuid":"winlog.event_data.ParentProcessGuid",
                 "EventCode":"event.code",
                 "AccountDomain":"user.domain",
+                "bytes_out":"client.bytes",
+                "event_dataset":"event.dataset",
+                "dest_addr":"destination.address",
+                "src_addr":"source.address",
+                "src_host":"host.hostname",
                 "bytes_out":"client.bytes"
 	}
 }

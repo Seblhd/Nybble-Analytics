@@ -1,0 +1,21 @@
+title: Zeek HTTP and HTTPS data leak rule
+id: b8d5604b98c7d4e121a431b56c0bb7c8
+status: experimental
+description: Sum the number of destination.bytes for a unique destination.address and trigger an alert when threshold is exceeded.
+tags:
+    - Some MITRE
+author: Sebastien Lehuede
+level: high
+logsource:
+    category:   network_monitoring
+    product: zeek
+detection:
+    selection:
+        dest_port:443
+        event_dataset: "zeek.connection"
+    timeframe: 5m
+    condition: selection|sum(bytes_out) by dest_addr > 20000
+fields:
+    - dest_addr
+    - src_host
+    - src_address

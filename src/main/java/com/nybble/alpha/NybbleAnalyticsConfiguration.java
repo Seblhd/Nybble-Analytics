@@ -5,21 +5,18 @@ import org.apache.commons.configuration2.FileBasedConfiguration;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Parameters;
-import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 
 import java.io.File;
-import java.util.List;
 
 public class NybbleAnalyticsConfiguration {
 
-    private String bootstrapServersIp;
-    private String bootstrapServersPort;
+    private String kafkaBootstrapServers;
     private String kafkaGroupId;
-    private List<String> topicsName;
-    private String topicsPattern;
-    private String startPosition;
-    private Long startEpochTimestamp;
+    private String kafkaTopicsName;
+    private String kafkaTopicsPattern;
+    private String kafkaStartPosition;
+    private Long kafkaStartEpochTimestamp;
     private String redisServerIp;
     private Integer redisServerPort;
     private Integer redisConnectionTimeOut;
@@ -41,7 +38,7 @@ public class NybbleAnalyticsConfiguration {
     private Integer elasticsearchAlertBulkFlushMaxActions;
     private Integer elasticsearchEventStreamParallelism;
     private Integer elasticsearchAlertStreamParallelism;
-    private String globalMapFile;
+    private String sigmaGlobalMapFile;
     private String sigmaRulesFolder;
     private String sigmaMapsFolder;
     private Boolean mispEnrichmentFlag;
@@ -51,6 +48,8 @@ public class NybbleAnalyticsConfiguration {
     private String mispMapFile;
 
     public NybbleAnalyticsConfiguration() {
+
+
         try {
 
             Parameters configBuilderParams = new Parameters();
@@ -58,34 +57,33 @@ public class NybbleAnalyticsConfiguration {
             FileBasedConfigurationBuilder<FileBasedConfiguration> configurationBuilder =
                     new FileBasedConfigurationBuilder<FileBasedConfiguration>(PropertiesConfiguration.class)
                             .configure(configBuilderParams.properties()
-                                    .setFile(new File("./src/main/resources/config/config.properties"))
-                                    .setListDelimiterHandler(new DefaultListDelimiterHandler(',')));
+                                    .setFile(new File("./src/main/resources/config/config.properties")));
+                                    //.setListDelimiterHandler(new DefaultListDelimiterHandler(',')));
 
             Configuration nybbleAnalyticsConf = configurationBuilder.getConfiguration();
 
             // Kafka parameters
-            this.bootstrapServersIp = nybbleAnalyticsConf.getString("bootstrap.servers.ip");
-            this.bootstrapServersPort = nybbleAnalyticsConf.getString("bootstrap.servers.port");
-            this.kafkaGroupId = nybbleAnalyticsConf.getString("group.id");
+            this.kafkaBootstrapServers = nybbleAnalyticsConf.getString("kafka.bootstrap.servers");
+            this.kafkaGroupId = nybbleAnalyticsConf.getString("kafka.group.id");
 
-            if (nybbleAnalyticsConf.getString("topic.name.list") != null) {
-                this.topicsName = nybbleAnalyticsConf.getList(String.class, "topic.name.list");
+            if (nybbleAnalyticsConf.getString("kafka.topic.name.list") != null) {
+                this.kafkaTopicsName = nybbleAnalyticsConf.getString("kafka.topic.name.list");
             } else {
-                this.topicsName = null;
+                this.kafkaTopicsName = "";
             }
 
-            if (nybbleAnalyticsConf.getString("topic.name.regex") != null) {
-                this.topicsPattern = nybbleAnalyticsConf.getString("topic.name.regex");
+            if (nybbleAnalyticsConf.getString("kafka.topic.name.regex") != null) {
+                this.kafkaTopicsPattern = nybbleAnalyticsConf.getString("kafka.topic.name.regex");
             } else {
-                this.topicsPattern = null;
+                this.kafkaTopicsPattern = "";
             }
 
-            this.startPosition = nybbleAnalyticsConf.getString("start.position");
+            this.kafkaStartPosition = nybbleAnalyticsConf.getString("kafka.start.position");
 
-            if (nybbleAnalyticsConf.getString("start.timestamp") != null) {
-                this.startEpochTimestamp = Long.parseLong(nybbleAnalyticsConf.getString("start.timestamp"));
+            if (nybbleAnalyticsConf.getString("kafka.start.timestamp") != null) {
+                this.kafkaStartEpochTimestamp = Long.parseLong(nybbleAnalyticsConf.getString("kafka.start.timestamp"));
             } else {
-                this.startEpochTimestamp = null;
+                this.kafkaStartEpochTimestamp = 0L;
             }
 
             // Redis parameters
@@ -114,12 +112,12 @@ public class NybbleAnalyticsConfiguration {
             this.elasticsearchEventStreamParallelism = nybbleAnalyticsConf.getInt("elasticsearch.event.streamparallelism");
 
             // Sigma Rules parameters
-            this.globalMapFile = nybbleAnalyticsConf.getString("global.map");
-            this.sigmaRulesFolder = nybbleAnalyticsConf.getString("rules.folder");
-            this.sigmaMapsFolder = nybbleAnalyticsConf.getString("maps.folder");
+            this.sigmaGlobalMapFile = System.getenv("NYBBLE_HOME") + nybbleAnalyticsConf.getString("sigma.global.map");
+            this.sigmaRulesFolder = System.getenv("NYBBLE_HOME") + nybbleAnalyticsConf.getString("sigma.rules.folder");
+            this.sigmaMapsFolder = System.getenv("NYBBLE_HOME") + nybbleAnalyticsConf.getString("sigma.maps.folder");
 
             // MISP parameters
-            this.mispEnrichmentFlag = nybbleAnalyticsConf.getBoolean("misp.enrichment");
+            this.mispEnrichmentFlag = nybbleAnalyticsConf.getBoolean("misp.enrichment.enable");
 
             this.mispHost = nybbleAnalyticsConf.getString("misp.host");
 
@@ -130,7 +128,7 @@ public class NybbleAnalyticsConfiguration {
             }
 
             this.mispAutomationKey = nybbleAnalyticsConf.getString("misp.automation.key");
-            this.mispMapFile = nybbleAnalyticsConf.getString("misp.map");
+            this.mispMapFile = System.getenv("NYBBLE_HOME") + nybbleAnalyticsConf.getString("misp.map");
 
 
         } catch (ConfigurationException cex) {
@@ -138,21 +136,17 @@ public class NybbleAnalyticsConfiguration {
         }
     }
 
-    public String getKafkaBootstrapServersIp() { return this.bootstrapServersIp; }
-
-    public String getKafkaBootstrapServersPort() { return this.bootstrapServersPort; }
-
-    public String getKafkaBootstrapServers() { return this.bootstrapServersIp + ":" + this.bootstrapServersPort; }
+    public String getKafkaBootstrapServers() { return this.kafkaBootstrapServers; }
 
     public String getKafkaGroupId() { return this.kafkaGroupId; }
 
-    public List<String> getKafkaTopicsName() { return this.topicsName; }
+    public String getKafkaTopicsName() { return this.kafkaTopicsName; }
 
-    public String getKafkaTopicsPattern() { return this.topicsPattern; }
+    public String getKafkaTopicsPattern() { return this.kafkaTopicsPattern; }
 
-    public String getStartPosition() { return startPosition; }
+    public String getKafkaStartPosition() { return kafkaStartPosition; }
 
-    public Long getStartEpochTimestamp() { return this.startEpochTimestamp; }
+    public Long getKafkaStartEpochTimestamp() { return this.kafkaStartEpochTimestamp; }
 
     public String getElasticsearchHost() { return elasticsearchHost; }
 
@@ -196,7 +190,7 @@ public class NybbleAnalyticsConfiguration {
 
     public Integer getRedisDnsCacheId() { return redisDnsCacheId; }
 
-    public String getGlobalMapFile() { return globalMapFile; }
+    public String getSigmaGlobalMapFile() { return sigmaGlobalMapFile; }
 
     public String getSigmaMapsFolder() { return sigmaMapsFolder; }
 

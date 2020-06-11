@@ -1,6 +1,7 @@
 package com.nybble.alpha.rule_mapping;
 
-import com.nybble.alpha.NybbleAnalyticsConfiguration;
+import com.nybble.alpha.NybbleFlinkConfiguration;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectReader;
@@ -23,20 +24,25 @@ public class SigmaMappingFileBuilder {
     private static ObjectMapper fileWriter = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
     private static ObjectNode globalFieldMapping = jsonMapper.createObjectNode();
     private static ObjectNode sigmaMappingNode = fileWriter.createObjectNode();
-    private NybbleAnalyticsConfiguration nybbleAnalyticsConfiguration = new NybbleAnalyticsConfiguration();
+    private Configuration nybbleFlinkConfiguration;
     private static Logger rulesMappingLogger = Logger.getLogger("ruleMappingFile");
     private String loggingRuleID;
 
 
     public SigmaMappingFileBuilder() throws IOException {
+
+        // Set configuration values.
+        NybbleFlinkConfiguration.setNybbleConfiguration();
+        nybbleFlinkConfiguration = NybbleFlinkConfiguration.getNybbleConfiguration();
+
         // Create an ObjectNode containing Global Mapping fields.
-        globalFieldMapping = jsonMapper.readValue(new File(nybbleAnalyticsConfiguration.getGlobalMapFile()), ObjectNode.class);
+        globalFieldMapping = jsonMapper.readValue(new File(nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.SIGMA_GLOBAL_MAP_PATH)), ObjectNode.class);
     }
 
     public void initFileBuilder(String sigmaRulePath, ObjectNode sigmaRule) throws IOException {
 
         // Get files in Maps Folder Path
-        Path sigmaMapFolderPath = Paths.get(nybbleAnalyticsConfiguration.getSigmaMapsFolder());
+        Path sigmaMapFolderPath = Paths.get(nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.SIGMA_MAPS_FOLDER_PATH));
 
         // Get RuleID for logging
         this.loggingRuleID = sigmaRule.get("id").toString();
@@ -221,7 +227,7 @@ public class SigmaMappingFileBuilder {
 
     public void deleteMappingFile(String sigmaRuleFile) {
 
-        Path sigmaMapFolderPath = Paths.get(nybbleAnalyticsConfiguration.getSigmaMapsFolder());
+        Path sigmaMapFolderPath = Paths.get(nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.SIGMA_MAPS_FOLDER_PATH));
 
         File sigmaRuleMapPath = new File(sigmaMapFolderPath.toString()+"/"+sigmaRuleFile.replaceAll("\\.yml", ".json"));
 

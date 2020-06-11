@@ -1,8 +1,9 @@
 package com.nybble.alpha.event_enrichment;
 
-import com.nybble.alpha.NybbleAnalyticsConfiguration;
+import com.nybble.alpha.NybbleFlinkConfiguration;
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple4;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,7 +12,6 @@ import org.apache.http.HttpHeaders;
 import org.apache.log4j.Logger;
 import org.asynchttpclient.AsyncHttpClient;
 import static org.asynchttpclient.Dsl.*;
-
 import org.asynchttpclient.Request;
 import org.asynchttpclient.Response;
 
@@ -28,10 +28,11 @@ import java.util.concurrent.Future;
 public class MispEnrichment {
 
     private static ObjectMapper jsonMapper = new ObjectMapper();
-    private NybbleAnalyticsConfiguration nybbleAnalyticsConfiguration = new NybbleAnalyticsConfiguration();
-    private URI mispURL = URI.create(nybbleAnalyticsConfiguration.getMispProto() + "://" + nybbleAnalyticsConfiguration.getMispHost() + "/attributes/restSearch");
-    private String mispAutomationKey = nybbleAnalyticsConfiguration.getMispAutomationKey();
-    private AsyncHttpClient mispAsyncRestClient = asyncHttpClient(config().setMaxConnectionsPerHost(64).setConnectionPoolCleanerPeriod(3000));
+    private Configuration nybbleFlinkConfiguration = NybbleFlinkConfiguration.getNybbleConfiguration();
+    private URI mispURL = URI.create(nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.MISP_PROTO) +
+            "://" + nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.MISP_HOST) + "/attributes/restSearch");
+    private String mispAutomationKey = nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.MISP_AUTOMATION_API_KEY);
+    private AsyncHttpClient mispAsyncRestClient = asyncHttpClient(config().setMaxConnectionsPerHost(16).setConnectionPoolCleanerPeriod(3000));
     private HashMap<String, ArrayList<Tuple>> mispMappingMap = new HashMap<>();
     private ArrayList<String> srcEnrichmentFieldArray = new ArrayList<>();
     private static Logger enrichmentEngineLogger = Logger.getLogger("enrichmentEngineFile");
@@ -73,7 +74,7 @@ public class MispEnrichment {
 
     public void setMispMapping() throws IOException {
         // Create a ObjectNode containing information in MispMap JSON file.
-        ObjectNode mispMapNode = jsonMapper.readValue(new File(nybbleAnalyticsConfiguration.getMispMapFile()), ObjectNode.class);
+        ObjectNode mispMapNode = jsonMapper.readValue(new File(nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.MISP_MAP_PATH)), ObjectNode.class);
 
         // Iterate though all source fields to be enrich.
         Iterator<Map.Entry<String, JsonNode>> mispMapIterator = mispMapNode.fields();
