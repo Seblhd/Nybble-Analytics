@@ -131,6 +131,9 @@ public class NybbleFlinkConfiguration {
     public static final ConfigOption<String> MISP_MAP_PATH =
             ConfigOptions.key("misp.map").stringType().defaultValue("mapping/misp-map/event_attributes_map.json");
 
+    public static final ConfigOption<String> MISP_MAP_VALUES =
+            ConfigOptions.key("misp.map.values").stringType().noDefaultValue();
+
     //####################################################################################
 
     private static Configuration nybbleConfiguration = new Configuration();
@@ -183,6 +186,10 @@ public class NybbleFlinkConfiguration {
         nybbleConfiguration.setString(MISP_PROTO, nybbleProperties.getMispProto());
         nybbleConfiguration.setString(MISP_AUTOMATION_API_KEY, nybbleProperties.getMispAutomationKey());
         nybbleConfiguration.setString(MISP_MAP_PATH, nybbleProperties.getMispMapFile());
+    }
+
+    public static void setMispMapValues(String mispMapJsonString) {
+        nybbleConfiguration.setString(MISP_MAP_VALUES, mispMapJsonString);
     }
 
     public static Configuration getNybbleConfiguration() {

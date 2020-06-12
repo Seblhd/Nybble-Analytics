@@ -31,6 +31,7 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.Requests;
 import org.elasticsearch.client.RestClientBuilder;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -46,6 +47,7 @@ public class NybbleAnalytics {
 	private static DateFormat esIndexFormat = new SimpleDateFormat("yyyy-MM-dd");
 	private static FlinkKafkaConsumer<ObjectNode> securityLogsConsumer;
 	private static Integer totalKafkaTopicPartitions = 0;
+	private static ObjectMapper jsonMapper = new ObjectMapper();
 
 	public static void main(String[] args) throws Exception {
 
@@ -77,11 +79,10 @@ public class NybbleAnalytics {
 		final Integer ES_EVENT_STREAM_PARALLELISM = nybbleFlinkConfiguration.getInteger(NybbleFlinkConfiguration.ELASTICSEARCH_EVENT_STREAM_PARALLELISM);
 		final Integer ES_ALERT_STREAM_PARALLELISM = nybbleFlinkConfiguration.getInteger(NybbleFlinkConfiguration.ELASTICSEARCH_ALERT_STREAM_PARALLELISM);
 
-		// Initialize MISP Enrichment.
-		MispEnrichment nybbleMispEnrich = new MispEnrichment();
-
-		// Set mapping for MISP enrichement.
-		nybbleMispEnrich.setMispMapping();
+		// Start by creation of an ObjectNode containing information in MispMap JSON file.
+		String mispMapNode = jsonMapper.readValue(new File(nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.MISP_MAP_PATH)), ObjectNode.class).toString();
+		// Set MISP_MAP_VLAUES value in Nybble Flink configuration
+		NybbleFlinkConfiguration.setMispMapValues(mispMapNode);
 
 		// Set Event Enricher after init.
 		EventAsyncEnricher eventAsyncEnricher = new EventAsyncEnricher();

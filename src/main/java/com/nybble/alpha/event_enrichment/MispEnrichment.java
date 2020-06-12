@@ -72,9 +72,10 @@ public class MispEnrichment {
         return mispRequestNode;
     }
 
-    public void setMispMapping() throws IOException {
-        // Create a ObjectNode containing information in MispMap JSON file.
-        ObjectNode mispMapNode = jsonMapper.readValue(new File(nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.MISP_MAP_PATH)), ObjectNode.class);
+    public void setMispMapping(String mispMapJsonString) throws IOException {
+
+        // Create a ObjectNode containing information in MispMap JSON String.
+        ObjectNode mispMapNode = jsonMapper.readValue(mispMapJsonString, ObjectNode.class);
 
         // Iterate though all source fields to be enrich.
         Iterator<Map.Entry<String, JsonNode>> mispMapIterator = mispMapNode.fields();

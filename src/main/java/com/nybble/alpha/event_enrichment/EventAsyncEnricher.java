@@ -38,10 +38,14 @@ public class EventAsyncEnricher extends RichAsyncFunction<ObjectNode, ObjectNode
     private ObjectMapper jsonMapper = new ObjectMapper();
     private static Logger enrichmentEngineLogger = Logger.getLogger("enrichmentEngineFile");
     private Configuration nybbleFlinkConfiguration = NybbleFlinkConfiguration.getNybbleConfiguration();
+    private static MispEnrichment nybbleMispEnrich = new MispEnrichment();
 
     @Override
     public void open(Configuration parameters) throws Exception {
         super.open(parameters);
+
+        // Set mapping for MISP enrichement.
+        nybbleMispEnrich.setMispMapping(nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.MISP_MAP_VALUES));
 
         // Set Redis Resources configuration.
         redisClientResources = DefaultClientResources.builder()
