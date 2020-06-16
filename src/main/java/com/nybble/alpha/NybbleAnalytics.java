@@ -5,7 +5,6 @@ import com.nybble.alpha.control_stream.MultipleRulesProcess;
 import com.nybble.alpha.control_stream.SigmaSourceFunction;
 import com.nybble.alpha.alert_engine.*;
 import com.nybble.alpha.event_enrichment.EventAsyncEnricher;
-import com.nybble.alpha.event_enrichment.MispEnrichment;
 import com.nybble.alpha.event_stream.EventDynamicKey;
 import com.nybble.alpha.event_stream.EventStreamTrigger;
 import com.nybble.alpha.event_stream.EventWindowFunction;

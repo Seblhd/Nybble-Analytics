@@ -15,7 +15,6 @@ import static org.asynchttpclient.Dsl.*;
 import org.asynchttpclient.Request;
 import org.asynchttpclient.Response;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;

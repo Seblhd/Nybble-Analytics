@@ -143,6 +143,21 @@ under the License.
 				</configuration>
 			</plugin>
 
+			<!-- Maven Jar Plugin to create jar for project with ClassPath and MainClass MANIFEST-->
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.2.0</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>com.nybble.alpha.NybbleAnalytics</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+
 			<!-- Maven Plugin assembly to create zip, tar, jar file with full project-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -152,14 +167,7 @@ under the License.
 					<descriptors>
 						<descriptor>src/main/resources/assembly/nybble-src.xml</descriptor>
 					</descriptors>
-					<finalName>NybbleAnalytics</finalName>
-					<archive>
-						<manifest>
-							<addClasspath>true</addClasspath>
-							<classpathPrefix>lib</classpathPrefix>
-							<mainClass>com.nybble.alpha.NybbleAnalytics</mainClass>
-						</manifest>
-					</archive>
+					<finalName>nybble-analytics</finalName>
 				</configuration>
 				<executions>
 					<execution>

@@ -1,8 +1,8 @@
 <assembly xmlns="http://maven.apache.org/ASSEMBLY/2.1.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.1.0 http://maven.apache.org/xsd/assembly-2.1.0.xsd">
-  <id>App</id>
-  <includeBaseDirectory>true</includeBaseDirectory>
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.1.0 http://maven.apache.org/xsd/assembly-2.1.0.xsd">
+  <id>${project.version}</id>
+  <includeBaseDirectory>false</includeBaseDirectory>
   <!-- Export Nybble Analytics in following archive format -->
   <formats>
     <format>zip</format>
@@ -10,37 +10,47 @@
     <format>tar.bz2</format>
   </formats>
   <fileSets>
+    <!-- Copy Flink directory to include Flink directly in Nybble Package -->
     <fileSet>
-      <directory>${project.basedir}/src/main/resources/config</directory>
-      <outputDirectory>/conf</outputDirectory>
+      <directory>${project.basedir}/src/main/test-resources/flink-1.10.1</directory>
+      <outputDirectory>flink</outputDirectory>
+      <!-- Exclude useless file in Flink folder -->
+      <excludes>
+        <exclude>examples/**</exclude>
+        <exclude>conf/log4j-cli.properties</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
-      <directory>${project.basedir}/src/main/resources/MISPMaps</directory>
-      <outputDirectory>/mapping/misp-map</outputDirectory>
+      <directory>${project.basedir}/src/main/test-resources/config</directory>
+      <outputDirectory>conf</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>${project.basedir}/src/main/test-resources/MISPMaps</directory>
+      <outputDirectory>mapping/misp-map</outputDirectory>
       <!-- Include only MISP Map JSON file and not backup files for packaging -->
       <includes>
         <include>*/**</include>
       </includes>
     </fileSet>
     <fileSet>
-      <directory>${project.basedir}/src/main/resources/SigmaMaps</directory>
-      <outputDirectory>/mapping/sigma-maps</outputDirectory>
+      <directory>${project.basedir}/src/main/test-resources/SigmaMaps</directory>
+      <outputDirectory>mapping/sigma-maps</outputDirectory>
       <!-- Exclude all existing maps for packaging -->
       <excludes>
         <exclude>*/**</exclude>
       </excludes>
     </fileSet>
     <fileSet>
-      <directory>${project.basedir}/src/main/resources/SigmaRules</directory>
-      <outputDirectory>/rules</outputDirectory>
+      <directory>${project.basedir}/src/main/test-resources/SigmaRules</directory>
+      <outputDirectory>rules</outputDirectory>
       <!-- Exclude rules from dev environment for packaging -->
       <excludes>
         <exclude>*/**</exclude>
       </excludes>
     </fileSet>
     <fileSet>
-      <directory>${project.basedir}/src/main/resources/logs</directory>
-      <outputDirectory>/logs</outputDirectory>
+      <directory>${project.basedir}/src/main/test-resources/logs</directory>
+      <outputDirectory>logs</outputDirectory>
       <!-- Exclude already existing logs from dev environment for packaging -->
       <includes>
         <include>**</include>
@@ -50,7 +60,6 @@
         <exclude>**/*.log.*</exclude>
       </excludes>
     </fileSet>
-
   </fileSets>
   <files>
     <file>
@@ -59,23 +68,33 @@
       <destName>NybbleAnalytics</destName>
     </file>
     <file>
-      <source>${project.basedir}/src/main/resources/sigma_ECS_fields_map.json</source>
-      <outputDirectory>/mapping/</outputDirectory>
+      <source>${project.basedir}/src/main/test-resources/sigma_ECS_fields_map.json</source>
+      <outputDirectory>mapping/</outputDirectory>
+      <destName>sigma_global_ECS_map.json</destName>
     </file>
     <file>
-      <source>${project.basedir}/src/main/resources/elastic-mapping-file/nybble-template.json</source>
-      <outputDirectory>/mapping/elasticsearch-map/</outputDirectory>
+      <source>${project.basedir}/src/main/test-resources/elastic-mapping-file/nybble-template.json</source>
+      <outputDirectory>mapping/elasticsearch-map/</outputDirectory>
     </file>
     <file>
-      <source>${project.basedir}/src/main/resources/log4j.properties</source>
-      <outputDirectory>/conf</outputDirectory>
+      <source>${project.basedir}/src/main/test-resources/log4j.properties</source>
+      <outputDirectory>flink/conf</outputDirectory>
+      <destName>log4j-cli.properties</destName>
+    </file>
+    <file>
+      <source>${project.basedir}/src/main/test-resources/install.sh</source>
+      <outputDirectory>.</outputDirectory>
+      <fileMode>0755</fileMode>
     </file>
   </files>
   <dependencySets>
     <dependencySet>
-      <outputDirectory>/lib</outputDirectory>
+      <!-- Add dependencies directly flink/lib which is Flink ClassPath. -->
+      <outputDirectory>flink/lib</outputDirectory>
       <excludes>
-        <exclude>${project.groupId}:${project.artifactId}:jar:*</exclude>
+        <!--<exclude>${project.groupId}:${project.artifactId}:jar:*</exclude>-->
+        <exclude>log4j:log4j:*</exclude>
+        <exclude>org.slf4j:slf4j-log4j12:*</exclude>
       </excludes>
     </dependencySet>
   </dependencySets>

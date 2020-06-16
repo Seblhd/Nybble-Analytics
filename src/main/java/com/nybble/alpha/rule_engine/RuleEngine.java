@@ -253,10 +253,14 @@ public class RuleEngine {
 
             for (int y = 0; y <fieldsNode.size(); y++) {
 
-                mappedField = fieldMappingMapNode.get("map").get("fields").get(fieldsNode.get(y).asText()).asText();
+                try {
+                    mappedField = fieldMappingMapNode.get("map").get("fields").get(fieldsNode.get(y).asText()).asText();
 
-                if (!mappedFieldList.contains(mappedField)) {
-                    mappedFieldList.add(mappedField);
+                    if (!mappedFieldList.contains(mappedField)) {
+                        mappedFieldList.add(mappedField);
+                    }
+                } catch (NullPointerException npe) {
+                    ruleEngineLogger.error("Rule creation : value for useful field \"" + fieldsNode.get(y).asText() + "\" not found in corresponding rule map.");
                 }
             }
             mappedFieldList.forEach(fieldsArray::add);
