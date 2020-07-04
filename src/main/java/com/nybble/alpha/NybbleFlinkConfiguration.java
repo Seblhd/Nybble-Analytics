@@ -47,6 +47,27 @@ public class NybbleFlinkConfiguration {
     public static final ConfigOption<String> KAFKA_GROUP_ID =
             ConfigOptions.key("bootstrap.servers.port").stringType().defaultValue("flink_kafka_consumer");
 
+    public static final ConfigOption<String> KAFKA_SECURITY_PROTOCOL =
+            ConfigOptions.key("kafka.security.protocol").stringType().defaultValue("none");
+
+    public static final ConfigOption<String> KAFKA_SSL_ENABLED_PROTOCOL =
+            ConfigOptions.key("kafka.ssl.enabled.protocols").stringType().noDefaultValue();
+
+    public static final ConfigOption<String> KAFKA_TRUSTSTORE_LOCATION =
+            ConfigOptions.key("kafka.ssl.truststore.location").stringType().noDefaultValue();
+
+    public static final ConfigOption<String> KAFKA_TRUSTSTORE_PASSWORD =
+            ConfigOptions.key("kafka.ssl.truststore.password").stringType().noDefaultValue();
+
+    public static final ConfigOption<String> KAFKA_KEYSTORE_LOCATION =
+            ConfigOptions.key("kafka.ssl.keystore.location").stringType().noDefaultValue();
+
+    public static final ConfigOption<String> KAFKA_KEYSTORE_PASSWORD =
+            ConfigOptions.key("kafka.ssl.keystore.password").stringType().noDefaultValue();
+
+    public static final ConfigOption<String> KAFKA_KEY_PASSWORD =
+            ConfigOptions.key("kafka.ssl.key.password").stringType().noDefaultValue();
+
     public static final ConfigOption<String> KAFKA_TOPIC_NAME_LIST =
             ConfigOptions.key("kafka.topic.name.list").stringType().noDefaultValue();
 
@@ -174,6 +195,13 @@ public class NybbleFlinkConfiguration {
         // Kafka Specific
         nybbleConfiguration.setString(KAFKA_BOOTSTRAP_SERVERS, nybbleProperties.getKafkaBootstrapServers());
         nybbleConfiguration.setString(KAFKA_GROUP_ID, nybbleProperties.getKafkaGroupId());
+        nybbleConfiguration.setString(KAFKA_SECURITY_PROTOCOL, nybbleProperties.getKafkaSecurityProtocol());
+        nybbleConfiguration.setString(KAFKA_SSL_ENABLED_PROTOCOL, nybbleProperties.getKafkaEnabledSslProtocol());
+        nybbleConfiguration.setString(KAFKA_TRUSTSTORE_LOCATION, nybbleProperties.getKafkaTrustStoreLocation());
+        nybbleConfiguration.setString(KAFKA_TRUSTSTORE_PASSWORD, nybbleProperties.getKafkaTrustStorePassword());
+        nybbleConfiguration.setString(KAFKA_KEYSTORE_LOCATION, nybbleProperties.getKafkaKeyStoreLocation());
+        nybbleConfiguration.setString(KAFKA_KEYSTORE_PASSWORD, nybbleProperties.getKafkaKeyStorePassword());
+        nybbleConfiguration.setString(KAFKA_KEY_PASSWORD, nybbleProperties.getKafkaKeyPassword());
         nybbleConfiguration.setString(KAFKA_TOPIC_NAME_LIST, nybbleProperties.getKafkaTopicsName());
         nybbleConfiguration.setString(KAFKA_TOPIC_NAME_REGEX, nybbleProperties.getKafkaTopicsPattern());
         nybbleConfiguration.setString(KAFKA_START_POSITION, nybbleProperties.getKafkaStartPosition());
@@ -182,9 +210,9 @@ public class NybbleFlinkConfiguration {
         // Elasticsearch Specific
         nybbleConfiguration.setString(ELASTICSEARCH_HOST, nybbleProperties.getElasticsearchHost());
         nybbleConfiguration.setInteger(ELASTICSEARCH_PORT, nybbleProperties.getElasticsearchPort());
-        nybbleConfiguration.setString(ELASTICSEARCH_PROTO, nybbleProperties.getElasticsearchProto());
+        nybbleConfiguration.setString(ELASTICSEARCH_PROTO, nybbleProperties.getElasticsearchProtocol());
         nybbleConfiguration.setBoolean(ELASTICSEARCH_SSL_ENABLE, nybbleProperties.getElasticsearchSslFlag());
-        nybbleConfiguration.setString(ELASTICSEARCH_TRUSTSTORE, nybbleProperties.getElasticsearchTruststorePath());
+        nybbleConfiguration.setString(ELASTICSEARCH_TRUSTSTORE, nybbleProperties.getElasticsearchTruststoreLocation());
         nybbleConfiguration.setString(ELASTICSEARCH_TRUSTSTORE_PASSWORD, nybbleProperties.getElasticsearchTruststorePassword());
         nybbleConfiguration.setBoolean(ELASTICSEARCH_AUTH_ENABLE, nybbleProperties.getElasticsearchAuthFlag());
         nybbleConfiguration.setString(ELASTICSEARCH_USERNAME, nybbleProperties.getElasticsearchUsername());

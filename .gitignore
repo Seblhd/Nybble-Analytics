@@ -2,3 +2,4 @@
 target/
 nybbleanalytics.iml
 src/main/resources/logs/
+src/main/resources/security/

@@ -119,6 +119,18 @@ public class NybbleAnalytics {
 		kafkaProperties.setProperty("bootstrap.servers", nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.KAFKA_BOOTSTRAP_SERVERS));
 		kafkaProperties.setProperty("group.id", nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.KAFKA_GROUP_ID));
 
+		// If SSL is enable, setup secure Kafka environment
+		if (nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.KAFKA_SECURITY_PROTOCOL).equals("SSL")) {
+
+			kafkaProperties.setProperty("security.protocol", nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.KAFKA_SECURITY_PROTOCOL));
+			kafkaProperties.setProperty("ssl.enabled.protocols", nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.KAFKA_SSL_ENABLED_PROTOCOL));
+			kafkaProperties.setProperty("ssl.truststore.location", nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.KAFKA_TRUSTSTORE_LOCATION));
+			kafkaProperties.setProperty("ssl.truststore.password", nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.KAFKA_TRUSTSTORE_PASSWORD));
+			kafkaProperties.setProperty("ssl.keystore.location", nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.KAFKA_KEYSTORE_LOCATION));
+			kafkaProperties.setProperty("ssl.keystore.password", nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.KAFKA_KEYSTORE_PASSWORD));
+			kafkaProperties.setProperty("ssl.key.password", nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.KAFKA_KEY_PASSWORD));
+		}
+
 		// Create a Kafka Admin Client
 		AdminClient kafkaAdminClient = AdminClient.create(kafkaProperties);
 

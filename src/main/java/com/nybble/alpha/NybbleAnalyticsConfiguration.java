@@ -13,6 +13,13 @@ public class NybbleAnalyticsConfiguration {
 
     private String kafkaBootstrapServers;
     private String kafkaGroupId;
+    private String kafkaSecurityProtocol;
+    private String kafkaEnabledSslProtocol;
+    private String kafkaTrustStoreLocation;
+    private String kafkaTrustStorePassword;
+    private String kafkaKeyStoreLocation;
+    private String kafkaKeyStorePassword;
+    private String kafkaKeyPassword;
     private String kafkaTopicsName;
     private String kafkaTopicsPattern;
     private String kafkaStartPosition;
@@ -28,9 +35,9 @@ public class NybbleAnalyticsConfiguration {
     private Integer redisDnsCacheId;
     private String elasticsearchHost;
     private Integer elasticsearchPort;
-    private String elasticsearchProto;
+    private String elasticsearchProtocol;
     private Boolean elasticsearchSslFlag;
-    private String elasticsearchTruststorePath;
+    private String elasticsearchTruststoreLocation;
     private String elasticsearchTruststorePassword;
     private Boolean elasticsearchAuthFlag;
     private String elasticsearchUsername;
@@ -71,6 +78,43 @@ public class NybbleAnalyticsConfiguration {
             // Kafka parameters
             this.kafkaBootstrapServers = nybbleAnalyticsConf.getString("kafka.bootstrap.servers");
             this.kafkaGroupId = nybbleAnalyticsConf.getString("kafka.group.id");
+            this.kafkaSecurityProtocol = nybbleAnalyticsConf.getString("kafka.security.protocol");
+
+            if (nybbleAnalyticsConf.getString("kafka.ssl.enabled.protocols") != null) {
+                this.kafkaEnabledSslProtocol = nybbleAnalyticsConf.getString("kafka.ssl.enabled.protocols");
+            } else {
+                this.kafkaEnabledSslProtocol = "";
+            }
+
+            if (nybbleAnalyticsConf.getString("kafka.ssl.truststore.location") != null) {
+                this.kafkaTrustStoreLocation = nybbleAnalyticsConf.getString("kafka.ssl.truststore.location");
+            } else {
+                this.kafkaTrustStoreLocation = "";
+            }
+
+            if (nybbleAnalyticsConf.getString("kafka.ssl.truststore.password") != null) {
+                this.kafkaTrustStorePassword = nybbleAnalyticsConf.getString("kafka.ssl.truststore.password");
+            } else {
+                this.kafkaTrustStorePassword = "";
+            }
+
+            if (nybbleAnalyticsConf.getString("kafka.ssl.keystore.location") != null) {
+                this.kafkaKeyStoreLocation = nybbleAnalyticsConf.getString("kafka.ssl.keystore.location");
+            } else {
+                this.kafkaKeyStoreLocation = "";
+            }
+
+            if (nybbleAnalyticsConf.getString("kafka.ssl.keystore.password") != null) {
+                this.kafkaKeyStorePassword = nybbleAnalyticsConf.getString("kafka.ssl.keystore.password");
+            } else {
+                this.kafkaKeyStorePassword = "";
+            }
+
+            if (nybbleAnalyticsConf.getString("kafka.ssl.key.password") != null) {
+                this.kafkaKeyPassword = nybbleAnalyticsConf.getString("kafka.ssl.key.password");
+            } else {
+                this.kafkaKeyPassword = "";
+            }
 
             if (nybbleAnalyticsConf.getString("kafka.topic.name.list") != null) {
                 this.kafkaTopicsName = nybbleAnalyticsConf.getString("kafka.topic.name.list");
@@ -106,14 +150,14 @@ public class NybbleAnalyticsConfiguration {
             // Elasticsearch parameters
             this.elasticsearchHost = nybbleAnalyticsConf.getString("elasticsearch.host");
             this.elasticsearchPort = nybbleAnalyticsConf.getInt("elasticsearch.port");
-            this.elasticsearchProto = nybbleAnalyticsConf.getString("elasticsearch.proto");
+            this.elasticsearchProtocol = nybbleAnalyticsConf.getString("elasticsearch.proto");
 
-            this.elasticsearchSslFlag = this.elasticsearchProto.equals("https");
+            this.elasticsearchSslFlag = this.elasticsearchProtocol.equals("https");
 
             if (nybbleAnalyticsConf.getString("elasticsearch.truststore.path") != null) {
-                this.elasticsearchTruststorePath = nybbleAnalyticsConf.getString("elasticsearch.truststore.path");
+                this.elasticsearchTruststoreLocation = nybbleAnalyticsConf.getString("elasticsearch.truststore.path");
             } else {
-                this.elasticsearchTruststorePath = "";
+                this.elasticsearchTruststoreLocation = "";
             }
 
             if (nybbleAnalyticsConf.getString("elasticsearch.truststore.password") != null) {
@@ -175,6 +219,20 @@ public class NybbleAnalyticsConfiguration {
 
     public String getKafkaGroupId() { return this.kafkaGroupId; }
 
+    public String getKafkaSecurityProtocol() { return kafkaSecurityProtocol; }
+
+    public String getKafkaEnabledSslProtocol() { return kafkaEnabledSslProtocol; }
+
+    public String getKafkaTrustStoreLocation() { return kafkaTrustStoreLocation; }
+
+    public String getKafkaTrustStorePassword() { return kafkaTrustStorePassword; }
+
+    public String getKafkaKeyStoreLocation() { return kafkaKeyStoreLocation; }
+
+    public String getKafkaKeyStorePassword() { return kafkaKeyStorePassword; }
+
+    public String getKafkaKeyPassword() { return kafkaKeyPassword; }
+
     public String getKafkaTopicsName() { return this.kafkaTopicsName; }
 
     public String getKafkaTopicsPattern() { return this.kafkaTopicsPattern; }
@@ -187,11 +245,11 @@ public class NybbleAnalyticsConfiguration {
 
     public Integer getElasticsearchPort() { return elasticsearchPort; }
 
-    public String getElasticsearchProto() { return elasticsearchProto; }
+    public String getElasticsearchProtocol() { return elasticsearchProtocol; }
 
     public Boolean getElasticsearchSslFlag() { return elasticsearchSslFlag; }
 
-    public String getElasticsearchTruststorePath() { return elasticsearchTruststorePath; }
+    public String getElasticsearchTruststoreLocation() { return elasticsearchTruststoreLocation; }
 
     public String getElasticsearchTruststorePassword() { return elasticsearchTruststorePassword; }
 
