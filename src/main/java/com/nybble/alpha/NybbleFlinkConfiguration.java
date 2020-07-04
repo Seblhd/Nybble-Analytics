@@ -72,6 +72,24 @@ public class NybbleFlinkConfiguration {
     public static final ConfigOption<String> ELASTICSEARCH_PROTO =
             ConfigOptions.key("elasticsearch.proto").stringType().noDefaultValue();
 
+    public static final ConfigOption<Boolean> ELASTICSEARCH_SSL_ENABLE =
+            ConfigOptions.key("elasticsearch.ssl.enable").booleanType().defaultValue(false);
+
+    public static final ConfigOption<String> ELASTICSEARCH_TRUSTSTORE =
+            ConfigOptions.key("elasticsearch.truststore").stringType().noDefaultValue();
+
+    public static final ConfigOption<String> ELASTICSEARCH_TRUSTSTORE_PASSWORD =
+            ConfigOptions.key("elasticsearch.truststore.password").stringType().noDefaultValue();
+
+    public static final ConfigOption<Boolean> ELASTICSEARCH_AUTH_ENABLE =
+            ConfigOptions.key("elasticsearch.auth.enable").booleanType().defaultValue(false);
+
+    public static final ConfigOption<String> ELASTICSEARCH_USERNAME =
+            ConfigOptions.key("elasticsearch.username").stringType().noDefaultValue();
+
+    public static final ConfigOption<String> ELASTICSEARCH_PASSWORD =
+            ConfigOptions.key("elasticsearch.password").stringType().noDefaultValue();
+
     public static final ConfigOption<String> ELASTICSEARCH_ALERT_INDEX_NAME =
             ConfigOptions.key("elasticsearch.alert.index").stringType().defaultValue("alerts-");
 
@@ -165,6 +183,12 @@ public class NybbleFlinkConfiguration {
         nybbleConfiguration.setString(ELASTICSEARCH_HOST, nybbleProperties.getElasticsearchHost());
         nybbleConfiguration.setInteger(ELASTICSEARCH_PORT, nybbleProperties.getElasticsearchPort());
         nybbleConfiguration.setString(ELASTICSEARCH_PROTO, nybbleProperties.getElasticsearchProto());
+        nybbleConfiguration.setBoolean(ELASTICSEARCH_SSL_ENABLE, nybbleProperties.getElasticsearchSslFlag());
+        nybbleConfiguration.setString(ELASTICSEARCH_TRUSTSTORE, nybbleProperties.getElasticsearchTruststorePath());
+        nybbleConfiguration.setString(ELASTICSEARCH_TRUSTSTORE_PASSWORD, nybbleProperties.getElasticsearchTruststorePassword());
+        nybbleConfiguration.setBoolean(ELASTICSEARCH_AUTH_ENABLE, nybbleProperties.getElasticsearchAuthFlag());
+        nybbleConfiguration.setString(ELASTICSEARCH_USERNAME, nybbleProperties.getElasticsearchUsername());
+        nybbleConfiguration.setString(ELASTICSEARCH_PASSWORD, nybbleProperties.getElasticsearchPassword());
         nybbleConfiguration.setString(ELASTICSEARCH_ALERT_INDEX_NAME, nybbleProperties.getElasticsearchAlertIndex());
         nybbleConfiguration.setString(ELASTICSEARCH_EVENT_INDEX_NAME, nybbleProperties.getElasticsearchEventIndex());
         nybbleConfiguration.setInteger(ELASTICSEARCH_REST_CONNECTION_TIMEOUT, nybbleProperties.getElasticsearchRestConTimeOut());

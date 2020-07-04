@@ -29,6 +29,12 @@ public class NybbleAnalyticsConfiguration {
     private String elasticsearchHost;
     private Integer elasticsearchPort;
     private String elasticsearchProto;
+    private Boolean elasticsearchSslFlag;
+    private String elasticsearchTruststorePath;
+    private String elasticsearchTruststorePassword;
+    private Boolean elasticsearchAuthFlag;
+    private String elasticsearchUsername;
+    private String elasticsearchPassword;
     private String elasticsearchEventIndex;
     private String elasticsearchAlertIndex;
     private Integer elasticsearchRestReqTimeOut;
@@ -101,6 +107,35 @@ public class NybbleAnalyticsConfiguration {
             this.elasticsearchHost = nybbleAnalyticsConf.getString("elasticsearch.host");
             this.elasticsearchPort = nybbleAnalyticsConf.getInt("elasticsearch.port");
             this.elasticsearchProto = nybbleAnalyticsConf.getString("elasticsearch.proto");
+
+            this.elasticsearchSslFlag = this.elasticsearchProto.equals("https");
+
+            if (nybbleAnalyticsConf.getString("elasticsearch.truststore.path") != null) {
+                this.elasticsearchTruststorePath = nybbleAnalyticsConf.getString("elasticsearch.truststore.path");
+            } else {
+                this.elasticsearchTruststorePath = "";
+            }
+
+            if (nybbleAnalyticsConf.getString("elasticsearch.truststore.password") != null) {
+                this.elasticsearchTruststorePassword = nybbleAnalyticsConf.getString("elasticsearch.truststore.password");
+            } else {
+                this.elasticsearchTruststorePassword = "";
+            }
+
+            this.elasticsearchAuthFlag = nybbleAnalyticsConf.getBoolean("elasticsearch.auth.enable");
+
+            if (nybbleAnalyticsConf.getString("elasticsearch.username") != null) {
+                this.elasticsearchUsername = nybbleAnalyticsConf.getString("elasticsearch.username");
+            } else {
+                this.elasticsearchUsername = "";
+            }
+
+            if (nybbleAnalyticsConf.getString("elasticsearch.password") != null) {
+                this.elasticsearchPassword = nybbleAnalyticsConf.getString("elasticsearch.password");
+            } else {
+                this.elasticsearchPassword = "";
+            }
+
             this.elasticsearchEventIndex = nybbleAnalyticsConf.getString("elasticsearch.event.index");
             this.elasticsearchAlertIndex = nybbleAnalyticsConf.getString("elasticsearch.alert.index");
             this.elasticsearchRestReqTimeOut = nybbleAnalyticsConf.getInt("elasticsearch.rest.request.timeout");
@@ -153,6 +188,18 @@ public class NybbleAnalyticsConfiguration {
     public Integer getElasticsearchPort() { return elasticsearchPort; }
 
     public String getElasticsearchProto() { return elasticsearchProto; }
+
+    public Boolean getElasticsearchSslFlag() { return elasticsearchSslFlag; }
+
+    public String getElasticsearchTruststorePath() { return elasticsearchTruststorePath; }
+
+    public String getElasticsearchTruststorePassword() { return elasticsearchTruststorePassword; }
+
+    public Boolean getElasticsearchAuthFlag() { return elasticsearchAuthFlag; }
+
+    public String getElasticsearchUsername() { return  elasticsearchUsername; }
+
+    public String getElasticsearchPassword() { return elasticsearchPassword; }
 
     public String getElasticsearchEventIndex() { return elasticsearchEventIndex; }
 

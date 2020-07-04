@@ -24,14 +24,27 @@ import org.apache.flink.streaming.connectors.elasticsearch7.ElasticsearchSink;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.util.serialization.JSONKeyValueDeserializationSchema;
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.SSLContexts;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.Requests;
 import org.elasticsearch.client.RestClientBuilder;
 
+import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.KeyStore;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -47,6 +60,7 @@ public class NybbleAnalytics {
 	private static FlinkKafkaConsumer<ObjectNode> securityLogsConsumer;
 	private static Integer totalKafkaTopicPartitions = 0;
 	private static ObjectMapper jsonMapper = new ObjectMapper();
+	private static SSLContext sslEs;
 
 	public static void main(String[] args) throws Exception {
 
@@ -77,6 +91,20 @@ public class NybbleAnalytics {
 		// Get Elasticsearch stream parallelism for Event and Alert indexes.
 		final Integer ES_EVENT_STREAM_PARALLELISM = nybbleFlinkConfiguration.getInteger(NybbleFlinkConfiguration.ELASTICSEARCH_EVENT_STREAM_PARALLELISM);
 		final Integer ES_ALERT_STREAM_PARALLELISM = nybbleFlinkConfiguration.getInteger(NybbleFlinkConfiguration.ELASTICSEARCH_ALERT_STREAM_PARALLELISM);
+
+		final Boolean ES_SSL_ENABLE = nybbleFlinkConfiguration.getBoolean(NybbleFlinkConfiguration.ELASTICSEARCH_SSL_ENABLE);
+
+		// If HTTPS is set for Elasticsearch Sink connection, then create SSL Context
+		if (ES_SSL_ENABLE) {
+			Path esTrustStorePath = Paths.get(nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.ELASTICSEARCH_TRUSTSTORE));
+			KeyStore esTrustStore = KeyStore.getInstance("JKS");
+			try (InputStream esTrustStoreInput = Files.newInputStream(esTrustStorePath)) {
+				// Load truststore from Input Stream and get Password from configuration
+				esTrustStore.load(esTrustStoreInput, nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.ELASTICSEARCH_TRUSTSTORE_PASSWORD).toCharArray());
+			}
+			SSLContextBuilder sslContext = SSLContexts.custom().loadTrustMaterial(esTrustStore, null);
+			sslEs = sslContext.build();
+		}
 
 		// Start by creation of an ObjectNode containing information in MispMap JSON file.
 		String mispMapNode = jsonMapper.readValue(new File(nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.MISP_MAP_PATH)), ObjectNode.class).toString();
@@ -240,6 +268,27 @@ public class NybbleAnalytics {
 							.setConnectionRequestTimeout(ES_REST_SCK_TIMEOUT);
 				}
 			});
+
+			// If Elasticsearch authentication is enable, then configure Http Client to use credentials from Nybble configuration.
+			if (nybbleFlinkConfiguration.getBoolean(NybbleFlinkConfiguration.ELASTICSEARCH_AUTH_ENABLE)) {
+				restClientBuilder.setHttpClientConfigCallback(new RestClientBuilder.HttpClientConfigCallback() {
+					@Override
+					public HttpAsyncClientBuilder customizeHttpClient(HttpAsyncClientBuilder httpAsyncClientBuilder) {
+
+						CredentialsProvider esCredentialsProvider = new BasicCredentialsProvider();
+						esCredentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(
+								nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.ELASTICSEARCH_USERNAME),
+								nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.ELASTICSEARCH_PASSWORD)
+						));
+
+						if (ES_SSL_ENABLE) {
+							return httpAsyncClientBuilder.setDefaultCredentialsProvider(esCredentialsProvider).setSSLContext(sslEs);
+						} else {
+							return httpAsyncClientBuilder.setDefaultCredentialsProvider(esCredentialsProvider);
+						}
+					}
+				});
+			}
 		});
 
 		esSinkDataBuilder.setRestClientFactory(restClientBuilder -> {
@@ -251,6 +300,27 @@ public class NybbleAnalytics {
 							.setConnectionRequestTimeout(ES_REST_REQ_TIMEOUT);
 				}
 			});
+
+			// If Elasticsearch authentication is enable, then configure Http Client to use credentials from Nybble configuration.
+			if (nybbleFlinkConfiguration.getBoolean(NybbleFlinkConfiguration.ELASTICSEARCH_AUTH_ENABLE)) {
+				restClientBuilder.setHttpClientConfigCallback(new RestClientBuilder.HttpClientConfigCallback() {
+					@Override
+					public HttpAsyncClientBuilder customizeHttpClient(HttpAsyncClientBuilder httpAsyncClientBuilder) {
+
+						CredentialsProvider esCredentialsProvider = new BasicCredentialsProvider();
+						esCredentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(
+								nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.ELASTICSEARCH_USERNAME),
+								nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.ELASTICSEARCH_PASSWORD)
+						));
+
+						if (ES_SSL_ENABLE) {
+							return httpAsyncClientBuilder.setDefaultCredentialsProvider(esCredentialsProvider).setSSLContext(sslEs);
+						} else {
+							return httpAsyncClientBuilder.setDefaultCredentialsProvider(esCredentialsProvider);
+						}
+					}
+				});
+			}
 		});
 
 		// Configuration for the bulk requests; this instructs the sink to emit after every element, otherwise they would be buffered
