@@ -59,11 +59,17 @@ public class NybbleFlinkConfiguration {
     public static final ConfigOption<String> KAFKA_TRUSTSTORE_PASSWORD =
             ConfigOptions.key("kafka.ssl.truststore.password").stringType().noDefaultValue();
 
+    public static final ConfigOption<String> KAFKA_TRUSTSTORE_TYPE =
+            ConfigOptions.key("kafka.ssl.truststore.type").stringType().noDefaultValue();
+
     public static final ConfigOption<String> KAFKA_KEYSTORE_LOCATION =
             ConfigOptions.key("kafka.ssl.keystore.location").stringType().noDefaultValue();
 
     public static final ConfigOption<String> KAFKA_KEYSTORE_PASSWORD =
             ConfigOptions.key("kafka.ssl.keystore.password").stringType().noDefaultValue();
+
+    public static final ConfigOption<String> KAFKA_KEYSTORE_TYPE =
+            ConfigOptions.key("kafka.ssl.keystore.type").stringType().noDefaultValue();
 
     public static final ConfigOption<String> KAFKA_KEY_PASSWORD =
             ConfigOptions.key("kafka.ssl.key.password").stringType().noDefaultValue();
@@ -199,8 +205,10 @@ public class NybbleFlinkConfiguration {
         nybbleConfiguration.setString(KAFKA_SSL_ENABLED_PROTOCOL, nybbleProperties.getKafkaEnabledSslProtocol());
         nybbleConfiguration.setString(KAFKA_TRUSTSTORE_LOCATION, nybbleProperties.getKafkaTrustStoreLocation());
         nybbleConfiguration.setString(KAFKA_TRUSTSTORE_PASSWORD, nybbleProperties.getKafkaTrustStorePassword());
+        nybbleConfiguration.setString(KAFKA_TRUSTSTORE_TYPE, nybbleProperties.getKafkaTrustStoreType());
         nybbleConfiguration.setString(KAFKA_KEYSTORE_LOCATION, nybbleProperties.getKafkaKeyStoreLocation());
         nybbleConfiguration.setString(KAFKA_KEYSTORE_PASSWORD, nybbleProperties.getKafkaKeyStorePassword());
+        nybbleConfiguration.setString(KAFKA_KEYSTORE_TYPE, nybbleProperties.getKafkaKeyStoreType());
         nybbleConfiguration.setString(KAFKA_KEY_PASSWORD, nybbleProperties.getKafkaKeyPassword());
         nybbleConfiguration.setString(KAFKA_TOPIC_NAME_LIST, nybbleProperties.getKafkaTopicsName());
         nybbleConfiguration.setString(KAFKA_TOPIC_NAME_REGEX, nybbleProperties.getKafkaTopicsPattern());

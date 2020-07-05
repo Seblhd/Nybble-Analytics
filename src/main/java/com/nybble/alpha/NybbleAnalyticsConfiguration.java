@@ -17,8 +17,10 @@ public class NybbleAnalyticsConfiguration {
     private String kafkaEnabledSslProtocol;
     private String kafkaTrustStoreLocation;
     private String kafkaTrustStorePassword;
+    private String kafkaTrustStoreType;
     private String kafkaKeyStoreLocation;
     private String kafkaKeyStorePassword;
+    private String kafkaKeyStoreType;
     private String kafkaKeyPassword;
     private String kafkaTopicsName;
     private String kafkaTopicsPattern;
@@ -98,6 +100,12 @@ public class NybbleAnalyticsConfiguration {
                 this.kafkaTrustStorePassword = "";
             }
 
+            if (nybbleAnalyticsConf.getString("kafka.ssl.truststore.type") != null) {
+                this.kafkaTrustStoreType = nybbleAnalyticsConf.getString("kafka.ssl.truststore.type");
+            } else {
+                this.kafkaTrustStoreType = "";
+            }
+
             if (nybbleAnalyticsConf.getString("kafka.ssl.keystore.location") != null) {
                 this.kafkaKeyStoreLocation = nybbleAnalyticsConf.getString("kafka.ssl.keystore.location");
             } else {
@@ -108,6 +116,12 @@ public class NybbleAnalyticsConfiguration {
                 this.kafkaKeyStorePassword = nybbleAnalyticsConf.getString("kafka.ssl.keystore.password");
             } else {
                 this.kafkaKeyStorePassword = "";
+            }
+
+            if (nybbleAnalyticsConf.getString("kafka.ssl.keystore.type") != null) {
+                this.kafkaKeyStoreType = nybbleAnalyticsConf.getString("kafka.ssl.keystore.type");
+            } else {
+                this.kafkaKeyStoreType = "";
             }
 
             if (nybbleAnalyticsConf.getString("kafka.ssl.key.password") != null) {
@@ -227,9 +241,13 @@ public class NybbleAnalyticsConfiguration {
 
     public String getKafkaTrustStorePassword() { return kafkaTrustStorePassword; }
 
+    public String getKafkaTrustStoreType() { return kafkaTrustStoreType; }
+
     public String getKafkaKeyStoreLocation() { return kafkaKeyStoreLocation; }
 
     public String getKafkaKeyStorePassword() { return kafkaKeyStorePassword; }
+
+    public String getKafkaKeyStoreType() { return kafkaKeyStoreType; }
 
     public String getKafkaKeyPassword() { return kafkaKeyPassword; }
 

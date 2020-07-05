@@ -129,6 +129,14 @@ public class NybbleAnalytics {
 			kafkaProperties.setProperty("ssl.keystore.location", nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.KAFKA_KEYSTORE_LOCATION));
 			kafkaProperties.setProperty("ssl.keystore.password", nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.KAFKA_KEYSTORE_PASSWORD));
 			kafkaProperties.setProperty("ssl.key.password", nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.KAFKA_KEY_PASSWORD));
+
+			if (!nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.KAFKA_TRUSTSTORE_TYPE).equals("")) {
+				kafkaProperties.setProperty("ssl.truststore.type", nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.KAFKA_TRUSTSTORE_TYPE));
+			}
+
+			if (!nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.KAFKA_KEYSTORE_TYPE).equals("")) {
+				kafkaProperties.setProperty("ssl.keystore.type", nybbleFlinkConfiguration.getString(NybbleFlinkConfiguration.KAFKA_KEYSTORE_TYPE));
+			}
 		}
 
 		// Create a Kafka Admin Client
