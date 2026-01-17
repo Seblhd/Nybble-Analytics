@@ -41,6 +41,9 @@ All done in-stream, with minimal latency.
 - **Apache Flink**: real-time processing + correlation engine + CEP/stateful logic
 - **Elasticsearch**: storage and indexing for logs and alerts (search/analytics)
 
+![Nybble Security Analytics architecture flows](docs/Nybble-Quickstart.gif)
+*Animated demonstration of Nybble Security Analytics flows between different elements, with Nybble correlatio engine in the middle.*
+
 ---
 
 ## Project Status
